@@ -363,12 +363,209 @@ ssh -L 5900:127.0.0.1:5900 root@服务器IP
 |------|---------|---------|
 | CPU | 1核 | 2核及以上 |
 | 内存 | 1GB | 2GB 及以上 |
+server:
+  type: queue
+```
+
+**请求端点**
+```
+POST http://127.0.0.1:3000/v1/queue/join
+```
+
+**SSE 事件类型**
+
+| 事件类型 | 数据格式 | 说明 |
+|---------|---------|------|
+| `status` | `{status: "queued", position: 1}` | 任务已入队 |
+| `status` | `{status: "processing"}` | 开始处理 |
+| `result` | `{status: "completed", image: "base64..."}` | 生成成功 |
+| `result` | `{status: "error", msg: "错误信息"}` | 生成失败 |
+| `heartbeat` | 时间戳 | 保持连接 |
+| `done` | `"[DONE]"` | 流结束 |
+
+**Node.js 示例代码**
+```javascript
+import http from 'http';
+
+const options = {
+  hostname: '127.0.0.1',
+  port: 3000,
+  path: '/v1/queue/join',
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer your-secret-key'
+  }
+};
+
+const req = http.request(options, (res) => {
+  res.on('data', (chunk) => {
+    const lines = chunk.toString().split('\n');
+    for (const line of lines) {
+      if (line.startsWith('event: ')) {
+        const event = line.substring(7).trim();
+        console.log('事件类型:', event);
+      } else if (line.startsWith('data: ')) {
+        const data = JSON.parse(line.substring(6));
+        console.log('数据:', data);
+      }
+    }
+  });
+});
+
+req.write(JSON.stringify({
+  messages: [{ role: "user", content: "a cute cat" }]
+}));
+req.end();
+```
+
+#### 带图片的请求
+
+**支持格式**：PNG、JPEG、GIF、WebP  
+**最大数量**：5 张图片  
+**数据格式**：Base64 编码
+
+**请求示例**
+```json
+{
+  "messages": [{
+    "role": "user",
+    "content": [
+      {
+        "type": "text",
+        "text": "make it more colorful"
+      },
+      {
+        "type": "image_url",
+        "image_url": {
+          "url": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAA..."
+        }
+      }
+    ]
+  }]
+}
+```
+
+### 方式二：使用CLI客户端脚本
+
+**启动CLI工具**
+```bash
+npm test
+```
+根据指引填写图片路径和提示词即可
+
+---
+
+## 📁 项目结构
+
+```
+lmarena/
+├── server.js          # HTTP 服务器 (主入口)
+├── config.yaml        # 配置文件
+├── package.json       # 项目依赖
+├── lib/
+│   ├── lmarena.js     # 核心生图逻辑 (Puppeteer 操作)
+│   ├── config.js      # 配置加载器
+│   ├── genApiKey.js   # API 密钥生成工具
+│   └── test.js        # 功能测试脚本
+└── data/
+    ├── chromeUserData/  # Chrome 用户数据 (自动创建)
+    └── temp/            # 临时图片存储
+```
+
+---
+
+## 🔧 常见问题
+
+### 浏览器启动失败
+
+**问题**: `Error: Failed to launch the browser process`
+
+**解决方案**:
+- 确保已安装 Chrome 或 Chromium
+- 检查 `config.yaml` 中的 `chrome.path` 是否正确
+- 尝试删除 `data/chromeUserData` 目录后重新运行
+
+### GPU 相关错误
+
+**问题**: 无显卡服务器运行时出现 GPU 错误
+
+**解决方案**:
+- 该报错并不会影响程序运行，但是强烈建议在无显卡的设备上关闭GPU加速
+```yaml
+chrome:
+  gpu: false  # 禁用 GPU 加速
+```
+
+### 请求被拒绝 (429 Too Many Requests)
+
+**问题**: 并发请求过多
+
+**解决方案**:
+- 该问题仅存在于OpenAI兼容模式
+- 当前限制：1 个并发 + 2 个排队 (总计 3 个)
+- 修改 `server.js` 中的 `MAX_CONCURRENT` 和 `MAX_QUEUE_SIZE` (不建议，应为大多数客户端HTTP请求是有超时时间的)
+- 等待当前任务完成后再提交新任务
+
+### reCAPTCHA 验证失败
+
+**问题**: 返回 `recaptcha validation failed`
+
+**解决方案**:
+- 这是 LMArena 的人机验证机制
+- 建议：
+  - 降低请求频率
+  - 首次使用时手动完成一次验证 (关闭 headless 模式)
+  - 使用稳定和纯净的 IP 地址 (可使用 ping0.cc 查询IP地址纯净度)
+
+### 图像生成超时
+
+**问题**: 任务超过 120 秒未完成
+
+**解决方案**:
+- 检查网络连接是否稳定
+- 某些复杂提示词可能需要更长时间
+
+### Linux下关闭无头模式运行
+
+**问题**: 在Linux多用户模式下无界面运行浏览器
+
+**解决方案**:
+
+方法一：X11转发（适用于后续无头模式运行）
+- 推荐使用WindTerm开启右上角X-Server
+- 在会话设置中的X11栏目中改为 “内部X11显示”
+
+方法二：Xvfb+X11VNC（推荐）
+- 使用xvfb创建虚拟显示器运行该程序，并且将虚拟显示器映射到VNC中便于后续管理（因为在后续使用中可能还会弹出reCAPTCHA验证码需要手动通过）
+- 创建虚拟显示器并运行程序 (99为屏幕号，冲突可行更改)
+```
+xvfb-run --server-num=99 --server-args="-ac -screen 0 1280x720x16" npm start
+```
+- 将虚拟显示器映射至VNC
+```
+x11vnc -display :99 -localhost -nopw -once -noxdamage -ncache 10
+```
+- 后续可用RealVNC等程序通过5900端口连接（推荐使用SSH隧道转发不将VNC直接暴露在公网，然后VNC连接127.0.0.1）
+```
+ssh -L 5900:127.0.0.1:5900 root@服务器IP
+```
+
+---
+
+## 📊 配置建议
+| 资源 | 最低配置 | 推荐配置 |
+|------|---------|---------|
+| CPU | 1核 | 2核及以上 |
+| 内存 | 1GB | 2GB 及以上 |
 
 参考：经测试可以在Oracle的1G1C免费机Debian环境下运行
 
 ## 📄 许可证
 
-本项目仅供学习和研究使用，请遵守 LMArena.ai 的使用条款。
+本项目采用 [MIT License](LICENSE) 开源。
+
+**注意**: 本项目仅供学习和研究使用，请遵守 LMArena.ai 的使用条款。
 
 ---
 

@@ -1,4 +1,9 @@
 {
+	"name": "lmarena-imagen-automator",
+	"version": "1.0.0",
+	"description": "基于 Puppeteer 的 LMArena 自动化图像生成工具",
+	"license": "MIT",
+	"author": "foxhui",
 	"type": "module",
 	"scripts": {
 		"start": "node server.js",
