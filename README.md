@@ -1,4 +1,4 @@
-# LMArenaImagenAutomator - 使用文档
+# LMArenaImagenAutomator
 
 ## 📝 项目简介
 
@@ -46,11 +46,12 @@ LMArenaImagenAutomator 是一个基于 Puppeteer 的自动化图像生成工具�
 
 ## ⚙️ 配置说明
 
-### config.yaml 配置文件
+配置文件位于项目根目录下的 `config.yaml`，首次运行时会自动生成默认配置。
 
-配置文件位于项目根目录下的 `config.yaml`，包含以下主要配置项：
+<details>
+<summary>📝 查看详细配置说明</summary>
 
-#### 服务器配置
+### 服务器配置
 ```yaml
 server:
   # 运行模式: 'openai' (OpenAI 兼容) 或 'queue' (SSE 队列)
@@ -61,7 +62,7 @@ server:
   auth: sk-change-me-to-your-secure-key
 ```
 
-#### 浏览器配置
+### 浏览器配置
 ```yaml
 chrome:
   # Chrome 可执行文件路径 (留空使用 Puppeteer 内置版本)
@@ -76,7 +77,7 @@ chrome:
   gpu: false
 ```
 
-#### 代理配置
+### 代理配置
 ```yaml
 chrome:
   proxy:
@@ -101,6 +102,9 @@ chrome:
 | `server.auth` | 强密钥 | 务必修改默认值，使用 `npm run genkey` 生成 |
 | `chrome.headless` | `false` / `true` | 建议保持非无头模式（true已映射为new模式） |
 | `chrome.gpu` | `false` / `true` | 无显卡环境强烈建议关闭 |
+
+</details>
+
 
 ---
 
@@ -140,7 +144,15 @@ server:
   auth: your-secret-key
 ```
 
-**API 请求示例**
+**请求端点**
+```
+POST http://127.0.0.1:3000/v1/chat/completions
+```
+
+<details>
+<summary>📄 查看API请求示例</summary>
+
+**请求示例**
 ```bash
 curl -X POST http://127.0.0.1:3000/v1/chat/completions \
   -H "Content-Type: application/json" \
@@ -155,14 +167,6 @@ curl -X POST http://127.0.0.1:3000/v1/chat/completions \
     ]
   }'
 ```
-
-> **关于 `model` 参数**：
-> - **必填**：必须填写支持的模型名称，否则将使用 LMArena 网页默认模型
-> - **查看可用模型**：
->   - 方式 1：访问 `/v1/models` 接口查询
->   - 方式 2：直接查看 `lib/models.js` 文件
-> - **示例模型**：`seedream-4-high-res-fal`、`gemini-3-pro-image-preview`、`dall-e-3` 等
-
 
 **响应格式**
 ```json
@@ -181,6 +185,14 @@ curl -X POST http://127.0.0.1:3000/v1/chat/completions \
   }]
 }
 ```
+</details>
+
+> **关于 `model` 参数**：
+> - **必填**：必须填写支持的模型名称，否则将使用 LMArena 网页默认模型
+> - **查看可用模型**：
+>   - 方式 1：访问 `/v1/models` 接口查询
+>   - 方式 2：直接查看 `lib/models.js` 文件
+> - **示例模型**：`seedream-4-high-res-fal`、`gemini-3-pro-image-preview`、`dall-e-3` 等
 
 #### 获取可用模型列表
 
@@ -188,6 +200,9 @@ curl -X POST http://127.0.0.1:3000/v1/chat/completions \
 ```
 GET http://127.0.0.1:3000/v1/models
 ```
+
+<details>
+<summary>📄 查看API请求示例</summary>
 
 **请求示例**
 ```bash
@@ -215,6 +230,8 @@ curl -X GET http://127.0.0.1:3000/v1/models \
   ]
 }
 ```
+
+</details>
 
 > **说明**：
 > - 此接口在 **OpenAI 兼容模式** 和 **Queue 队列模式** 下均可用
@@ -245,7 +262,9 @@ POST http://127.0.0.1:3000/v1/queue/join
 | `heartbeat` | 时间戳 | 保持连接 |
 | `done` | `"[DONE]"` | 流结束 |
 
-**Node.js 示例代码**
+<details>
+<summary>📄 查看 Node.js 示例代码</summary>
+
 ```javascript
 import http from 'http';
 
@@ -282,6 +301,9 @@ req.write(JSON.stringify({
 req.end();
 ```
 
+</details>
+
+
 > **提示**：Queue 模式同样支持 `model` 参数，用法与 OpenAI 兼容模式一致。
 
 #### 带图片的请求
@@ -289,6 +311,9 @@ req.end();
 **支持格式**：PNG、JPEG、GIF、WebP  
 **最大数量**：5 张图片  
 **数据格式**：Base64 编码
+
+<details>
+<summary>📄 查看API请求示例</summary>
 
 **请求示例**
 ```json
@@ -312,6 +337,8 @@ req.end();
 }
 ```
 
+</details>
+
 ### 方式二：使用CLI客户端脚本
 
 **启动CLI工具**
@@ -323,6 +350,9 @@ npm test
 ---
 
 ## 📁 项目结构
+
+<details>
+<summary>🗂️ 查看目录结构</summary>
 
 ```
 lmarena/
@@ -340,11 +370,14 @@ lmarena/
     └── temp/            # 临时图片存储
 ```
 
+</details>
+
 ---
 
 ## 🔧 常见问题
 
-### 浏览器启动失败
+<details>
+<summary>❌ 浏览器启动失败</summary>
 
 **问题**: `Error: Failed to launch the browser process`
 
@@ -355,7 +388,10 @@ lmarena/
 - 检查 `config.yaml` 中的 `chrome.path` 是否正确
 - 尝试删除 `data/chromeUserData` 目录后重新运行
 
-### GPU 相关错误
+</details>
+
+<details>
+<summary>❌ GPU 相关错误</summary>
 
 **问题**: 无显卡服务器运行时出现 GPU 错误
 
@@ -366,7 +402,10 @@ chrome:
   gpu: false  # 禁用 GPU 加速
 ```
 
-### 请求被拒绝 (429 Too Many Requests)
+</details>
+
+<details>
+<summary>❌ 请求被拒绝 (429 Too Many Requests)</summary>
 
 **问题**: 并发请求过多
 
@@ -376,7 +415,10 @@ chrome:
 - 修改 `server.js` 中的 `MAX_CONCURRENT` 和 `MAX_QUEUE_SIZE` (不建议，应为大多数客户端HTTP请求是有超时时间的)
 - 等待当前任务完成后再提交新任务
 
-### reCAPTCHA 验证失败
+</details>
+
+<details>
+<summary>❌ reCAPTCHA 验证失败</summary>
 
 **问题**: 返回 `recaptcha validation failed`
 
@@ -387,7 +429,10 @@ chrome:
   - 首次使用时手动完成一次验证 (关闭 headless 模式)
   - 使用稳定和纯净的 IP 地址 (可使用 [ping0.cc](https://ping0.cc) 查询IP地址纯净度)
 
-### 图像生成超时
+</details>
+
+<details>
+<summary>❌ 图像生成超时</summary>
 
 **问题**: 任务超过 120 秒未完成
 
@@ -395,7 +440,10 @@ chrome:
 - 检查网络连接是否稳定
 - 某些复杂提示词可能需要更长时间
 
-### Linux 环境下非无头模式运行
+</details>
+
+<details>
+<summary>🐧 Linux 环境下非无头模式运行</summary>
 
 **问题**: 需要在 Linux 服务器上显示浏览器界面（如手动过验证码）
 
@@ -424,6 +472,9 @@ chrome:
    ssh -L 5900:127.0.0.1:5900 root@服务器IP
    ```
    随后使用 VNC 客户端连接 `127.0.0.1:5900` 即可。
+
+</details>
+
 
 ---
 
