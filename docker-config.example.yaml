@@ -1,0 +1,67 @@
+# Docker 部署专用配置模板
+# 此配置针对 Hugging Face Spaces 等容器化环境优化
+
+# 日志等级: debug | info | warn | error
+logLevel: info
+
+server:
+  # 服务器模式: openai (标准兼容) | queue (流式队列)
+  type: openai
+  # 监听端口 (必须与 Dockerfile 中的 EXPOSE 一致)
+  port: 3000
+  # 鉴权 Token (Bearer Token) - 在容器环境中建议使用强密码
+  auth: sk-docker-deployment-secure-key
+
+backend:
+  # 选择后端: lmarena (竞技场) | gemini_biz (Gemini Enterprise Business)
+  type: lmarena
+  
+  # Gemini Business 设置
+  geminiBiz:
+    # 入口链接
+    # 示例: "https://business.gemini.google/home/cid/8888a888-b6e0-88be-86e1-888cf3ee8cf4?csesidx=1666666666"
+    entryUrl: ""
+
+queue:
+  # 最大排队数 (容器环境中建议保持默认值)
+  maxQueueSize: 2
+  # 图片数量上限 (容器环境中建议保持默认值)
+  imageLimit: 5
+
+chrome:
+  # 浏览器可执行文件路径 (容器中自动使用 Puppeteer 默认路径)
+  # 在 Docker 环境中通常不需要指定路径
+  
+  # 是否启用无头模式 (容器环境中必须启用)
+  headless: true
+  
+  # 是否启用 GPU (容器环境中建议禁用)
+  gpu: false
+  
+  # 代理设置 (容器环境中通常不需要代理)
+  proxy:
+    # 是否启用代理
+    enable: false
+    # 代理类型: http 或 socks5
+    type: http
+    # 代理主机
+    host: 127.0.0.1
+    # 代理端口
+    port: 7890
+    # 代理认证 (可选)
+    # user: username
+    # passwd: password
+
+# Docker 环境特定设置
+docker:
+  # 数据持久化目录 (与 Dockerfile 中的目录一致)
+  dataDir: "/app/data"
+  # 临时文件目录
+  tempDir: "/tmp"
+  
+  # 资源限制 (与 Hugging Face Spaces 资源配额匹配)
+  resources:
+    # 最大内存使用 (MB)
+    maxMemory: 1024
+    # 超时时间 (秒)
+    timeout: 300
