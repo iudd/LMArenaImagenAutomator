@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2025-12-09
+
+### Changed
+- **优化性能**
+  - 逐步减少冗余代码，提升性能
+  - 增加适配器代码可读性
+- **日志优化**
+  - 已可以将错误原因透传至客户端，减少故障排查成本
+
+### Fixed
+- **减少故障**
+  - 填补或删除可能会出现BUG的相关代码
+
 ## [2.0.2] - 2025-12-09
 
 ### Fixed
