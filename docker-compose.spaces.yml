@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  lmarena-automator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: lmarena-spaces
+    restart: unless-stopped
+    ports:
+      - "7860:3000"
+    environment:
+      - NODE_ENV=production
+      - DOCKER_ENV=true
+    volumes:
+      - ./data:/app/data
+    networks:
+      - default
+    # Hugging Face Spaces 特定配置
+    deploy:
+      resources:
+        limits:
+          memory: 16G  # Hugging Face Spaces 提供的内存限制
+          cpus: '8.0'  # Hugging Face Spaces 提供的CPU限制
+
+networks:
+  default:
+    driver: bridge

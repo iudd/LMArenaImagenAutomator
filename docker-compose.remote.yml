@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  lmarena-automator:
+    build:
+      context: .
+      dockerfile: Dockerfile.remote
+    container_name: lmarena-imagen-automator
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DOCKER_ENV=true
+      - TZ=Asia/Shanghai
+    volumes:
+      # 数据持久化
+      - ./data:/app/data
+      # 日志持久化
+      - ./logs:/app/logs
+      # 配置文件挂载
+      - ./config.yaml:/app/config.yaml:ro
+    networks:
+      - lmarena-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/v1/models"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    # 资源限制
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+
+networks:
+  lmarena-network:
+    driver: bridge

@@ -159,6 +159,11 @@ async function startServer() {
             // 如果是控制台登录模式，保持程序运行
             if (isConsoleLoginMode) {
                 logger.info('服务器', '控制台登录模式运行中，登录成功后请按 Ctrl+C 退出');
+                logger.info('服务器', '远程服务器部署模式已启用');
+                
+                // 添加进程监控和自动恢复机制
+                setupProcessMonitoring();
+                
                 // 程序会保持运行直到用户手动退出
                 return;
             }
@@ -377,6 +382,36 @@ async function startServer() {
         logger.info('服务器', `运行模式: ${SERVER_MODE === 'openai' ? 'OpenAI 兼容模式' : 'Queue 队列模式'}`);
         logger.info('服务器', `最大队列: ${MAX_QUEUE_SIZE}，最大图片数量: ${IMAGE_LIMIT}`);
     });
+}
+
+/**
+ * 设置进程监控（远程服务器部署支持）
+ */
+function setupProcessMonitoring() {
+    // 内存使用情况监控
+    const memoryMonitor = setInterval(() => {
+        const memUsage = process.memoryUsage();
+        logger.info('系统监控', `内存使用: RSS=${Math.round(memUsage.rss / 1024 / 1024)}MB, Heap=${Math.round(memUsage.heapUsed / 1024 / 1024)}MB`);
+    }, 60000); // 每分钟报告一次内存使用
+    
+    // 进程退出清理
+    process.on('exit', () => {
+        clearInterval(memoryMonitor);
+        logger.info('系统监控', '进程退出，监控已停止');
+    });
+    
+    // 异常处理
+    process.on('uncaughtException', (err) => {
+        logger.error('系统监控', '未捕获异常', { error: err.message, stack: err.stack });
+        logger.info('系统监控', '程序将继续运行...');
+    });
+    
+    process.on('unhandledRejection', (reason, promise) => {
+        logger.error('系统监控', '未处理的Promise拒绝', { reason: reason });
+        logger.info('系统监控', '程序将继续运行...');
+    });
+    
+    logger.info('系统监控', '进程监控已启动');
 }
 
 startServer();
