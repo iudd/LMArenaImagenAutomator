@@ -152,9 +152,21 @@ async function startServer() {
     if (isLoginMode || isConsoleLoginMode) {
         logger.info('服务器', '登录模式启动，不启动 HTTP 服务器');
         
-        // 启动浏览器（登录模式会自动退出）
+        // 启动浏览器（控制台登录模式会保持运行）
         try {
             browserContext = await initBrowser(config);
+            
+            // 如果是控制台登录模式，保持程序运行
+            if (isConsoleLoginMode) {
+                logger.info('服务器', '控制台登录模式运行中，登录成功后请按 Ctrl+C 退出');
+                // 程序会保持运行直到用户手动退出
+                return;
+            }
+            
+            // 普通登录模式会在浏览器关闭后自动退出
+            logger.info('服务器', '登录模式完成，程序退出');
+            process.exit(0);
+            
         } catch (err) {
             logger.error('服务器', '浏览器初始化失败', { error: err.message });
             process.exit(1);
