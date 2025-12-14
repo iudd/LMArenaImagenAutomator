@@ -1,6 +1,5 @@
 /**
  * @fileoverview LMArena 适配器
- * @description 通过自动化方式驱动 LMArena 网页端生成图片（或解析文本），并将结果转换为统一的后端返回结构。
  */
 
 import {
@@ -15,7 +14,8 @@ import {
     normalizePageError,
     normalizeHttpError,
     downloadImage,
-    moveMouseAway
+    moveMouseAway,
+    waitForInput
 } from '../utils.js';
 import { logger } from '../../utils/logger.js';
 
@@ -59,8 +59,8 @@ async function generateImage(context, prompt, imgPaths, modelId, meta = {}) {
         logger.info('适配器', '开启新会话...', meta);
         await page.goto(TARGET_URL, { waitUntil: 'domcontentloaded' });
 
-        // 1. 等待输入框加载 (waitInput)
-        await page.waitForSelector(textareaSelector, { timeout: 30000 });
+        // 1. 等待输入框加载
+        await waitForInput(page, textareaSelector, { click: false });
         await sleep(1500, 2500);
 
         // 2. 上传图片 (uploadImages)
@@ -136,10 +136,7 @@ async function generateImage(context, prompt, imgPaths, modelId, meta = {}) {
         const img = extractImage(content);
         if (img) {
             logger.info('适配器', '已获取结果，正在下载图片...', meta);
-            const result = await downloadImage(img, {
-                proxyConfig: context.proxyConfig,
-                userDataDir: context.userDataDir
-            });
+            const result = await downloadImage(img, context);
             if (result.image) {
                 logger.info('适配器', '已下载图片，任务完成', meta);
             }
@@ -171,9 +168,7 @@ async function generateImage(context, prompt, imgPaths, modelId, meta = {}) {
  */
 async function waitInputValidator(page) {
     const textareaSelector = 'textarea';
-    await page.waitForSelector(textareaSelector, { timeout: 60000 });
-    await safeClick(page, textareaSelector, { bias: 'input' });
-    await sleep(500, 1000);
+    await waitForInput(page, textareaSelector, { click: true });
 }
 
 /**
@@ -240,5 +235,3 @@ export const manifest = {
     // 核心生图方法
     generateImage
 };
-
-export { generateImage };

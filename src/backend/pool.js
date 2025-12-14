@@ -107,6 +107,9 @@ class Worker {
             // sharedBrowser 实际是 BrowserContext（Camoufox 使用 launchPersistentContext）
             this.page = await sharedBrowser.newPage();
 
+            // 挂载页面级认证状态（供适配器使用，避免全局锁导致多 Worker 互相阻塞）
+            this.page.authState = { isHandlingAuth: false };
+
             // 初始化 ghost-cursor
             this.page.cursor = createCursor(this.page);
 
@@ -153,6 +156,9 @@ class Worker {
 
             this.browser = base.context;
             this.page = base.page;
+
+            // 挂载页面级认证状态（供适配器使用，避免全局锁导致多 Worker 互相阻塞）
+            this.page.authState = { isHandlingAuth: false };
 
             // 初始化 ghost-cursor
             this.page.cursor = createCursor(this.page);

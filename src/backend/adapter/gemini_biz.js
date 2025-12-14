@@ -1,6 +1,5 @@
 /**
  * @fileoverview Gemini Business 适配器
- * @description 通过自动化方式驱动 Gemini Business 网页端生成图片，并将结果转换为统一的后端返回结构。
  */
 
 import {
@@ -14,7 +13,12 @@ import {
     normalizePageError,
     normalizeHttpError,
     waitApiResponse,
-    moveMouseAway
+    moveMouseAway,
+    waitForPageAuth,
+    lockPageAuth,
+    unlockPageAuth,
+    isPageAuthLocked,
+    waitForInput
 } from '../utils.js';
 import { logger } from '../../utils/logger.js';
 
@@ -27,23 +31,14 @@ const INPUT_SELECTOR = 'ucs-prosemirror-editor .ProseMirror';
  * @param {string} targetUrl - 目标 URL，用于判断跳转完成
  * @returns {Promise<boolean>} 是否处理了跳转
  */
-let isHandlingAuth = false;
-
-/** 等待登录处理完成 */
-async function waitForAuthComplete() {
-    while (isHandlingAuth) {
-        await sleep(500, 1000);
-    }
-}
-
 async function handleAccountChooser(page) {
     // 防止重复处理
-    if (isHandlingAuth) return false;
+    if (isPageAuthLocked(page)) return false;
 
     try {
         const currentUrl = page.url();
         if (currentUrl.includes('auth.business.gemini.google/account-chooser')) {
-            isHandlingAuth = true;
+            lockPageAuth(page);
             logger.info('适配器', '[登录器] 检测到账户选择页面，尝试自动确认...');
 
             // 尝试查找提交按钮 (通常是标准的 button[type="submit"])
@@ -75,74 +70,21 @@ async function handleAccountChooser(page) {
 
                 // 额外缓冲时间，确保页面完全加载
                 await sleep(2000, 3000);
-                isHandlingAuth = false;
+                unlockPageAuth(page);
                 return true;
             } else {
                 // 按钮还没加载出来，保持锁，等待下次检查
-                // 不要释放 isHandlingAuth，让全局监听器下次再试
                 logger.debug('适配器', '[登录器] 按钮尚未加载，等待中...');
                 await sleep(500, 1000);
-                isHandlingAuth = false; // 释放锁让下次尝试
+                unlockPageAuth(page); // 释放锁让下次尝试
                 return true; // 返回 true 表示"仍在处理中"
             }
         }
     } catch (err) {
         logger.warn('适配器', `[登录器] 处理账户选择页面失败: ${err.message}`);
-        isHandlingAuth = false;
+        unlockPageAuth(page);
     }
     return false;
-}
-
-/**
- * 等待输入框出现，同时自动处理账户选择页面跳转
- * 
- * @param {import('playwright-core').Page} page - 页面对象
- * @param {object} [options={}] - 选项
- * @param {number} [options.timeout=60000] - 超时时间（毫秒）
- * @param {boolean} [options.click=true] - 是否点击输入框
- * @returns {Promise<void>}
- */
-async function waitForInputWithAccountChooser(page, options = {}) {
-    const { timeout = 60000, click = true } = options;
-
-    // 先检查一次当前页面 (全局监听器也会处理，但显式调用确保首次检查)
-    await handleAccountChooser(page);
-
-    // 轮询等待输入框
-    const startTime = Date.now();
-    while (Date.now() - startTime < timeout) {
-        // 如果正在处理跳转，暂停检测输入框
-        if (isHandlingAuth) {
-            await sleep(500, 1000);
-            continue;
-        }
-
-        let inputHandle = null;
-        try {
-            inputHandle = await page.$(INPUT_SELECTOR);
-        } catch (e) {
-            // 忽略执行上下文销毁错误
-            if (e.message.includes('Execution context was destroyed')) {
-                inputHandle = null;
-            } else {
-                throw e;
-            }
-        }
-
-        if (inputHandle) break;
-
-        await sleep(1000, 1500);
-    }
-
-    // 最终确认输入框存在
-    await page.waitForSelector(INPUT_SELECTOR, { timeout: 5000 }).catch(() => {
-        throw new Error('未找到输入框 (.ProseMirror)');
-    });
-
-    if (click) {
-        await safeClick(page, INPUT_SELECTOR, { bias: 'input' });
-        await sleep(500, 1000);
-    }
 }
 
 
@@ -166,17 +108,17 @@ async function generateImage(context, prompt, imgPaths, modelId, meta = {}) {
         }
 
         // 开启新对话 - 先等待可能正在进行的登录处理完成
-        await waitForAuthComplete();
+        await waitForPageAuth(page);
 
         logger.info('适配器', '开启新会话', meta);
         await page.goto(targetUrl, { waitUntil: 'domcontentloaded' });
 
         // 如果触发了账户选择跳转，等待全局处理器完成
-        await waitForAuthComplete();
+        await waitForPageAuth(page);
 
-        // 1. 等待输入框加载（使用公共函数处理账户选择）
+        // 1. 等待输入框加载
         logger.debug('适配器', '正在寻找输入框...', meta);
-        await waitForInputWithAccountChooser(page, { click: false });
+        await waitForInput(page, INPUT_SELECTOR, { click: false });
         await sleep(1500, 2500);
 
         // 2. 上传图片 (uploadImages - 使用自定义验证器)
@@ -316,8 +258,6 @@ async function generateImage(context, prompt, imgPaths, modelId, meta = {}) {
     }
 }
 
-export { generateImage };
-
 /**
  * 适配器 manifest
  */
@@ -343,7 +283,7 @@ export const manifest = {
 
     // 输入框就绪校验
     async waitInput(page, ctx) {
-        await waitForInputWithAccountChooser(page);
+        await waitForInput(page, INPUT_SELECTOR, { click: true });
     },
 
     // 导航处理器

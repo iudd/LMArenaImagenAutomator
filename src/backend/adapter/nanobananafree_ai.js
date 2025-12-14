@@ -1,8 +1,6 @@
 /**
  * @fileoverview NanoBananaFree AI 适配器
- * @description 通过自动化方式驱动 nanobananafree.ai 网页端生成图片，并将结果转换为统一的后端返回结构。
  */
-
 
 import {
     sleep,
@@ -15,7 +13,8 @@ import {
     waitApiResponse,
     normalizePageError,
     normalizeHttpError,
-    moveMouseAway
+    moveMouseAway,
+    waitForInput
 } from '../utils.js';
 import { logger } from '../../utils/logger.js';
 
@@ -40,8 +39,8 @@ async function generateImage(context, prompt, imgPaths, modelId, meta = {}) {
         logger.info('适配器', '开启新会话', meta);
         await page.goto(TARGET_URL, { waitUntil: 'domcontentloaded' });
 
-        // 1. 等待输入框加载 (waitInput)
-        await page.waitForSelector(textareaSelector, { timeout: 30000 });
+        // 1. 等待输入框加载
+        await waitForInput(page, textareaSelector, { click: false });
         await sleep(1500, 2500);
 
         // 2. 上传图片 (uploadImages - 仅取第一张)
@@ -136,9 +135,7 @@ async function generateImage(context, prompt, imgPaths, modelId, meta = {}) {
  */
 async function waitInputValidator(page) {
     const textareaSelector = 'textarea';
-    await page.waitForSelector(textareaSelector, { timeout: 60000 });
-    await safeClick(page, textareaSelector, { bias: 'input' });
-    await sleep(500, 1000);
+    await waitForInput(page, textareaSelector, { click: true });
 }
 
 /**
@@ -173,5 +170,3 @@ export const manifest = {
     // 核心生图方法
     generateImage
 };
-
-export { generateImage };

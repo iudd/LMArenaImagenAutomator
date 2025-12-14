@@ -1,6 +1,5 @@
 /**
  * @fileoverview Gemini（消费者版）适配器
- * @description 通过自动化方式驱动 Gemini 网页端生成图片，并将结果转换为统一的后端返回结构。
  */
 
 import {
@@ -11,7 +10,8 @@ import {
 import {
     fillPrompt,
     normalizePageError,
-    moveMouseAway
+    moveMouseAway,
+    waitForInput
 } from '../utils.js';
 import { logger } from '../../utils/logger.js';
 
@@ -38,7 +38,7 @@ async function generateImage(context, prompt, imgPaths, modelId, meta = {}) {
         await page.goto(TARGET_URL, { waitUntil: 'domcontentloaded' });
 
         // 1. 等待输入框加载
-        await inputLocator.waitFor({ timeout: 30000 });
+        await waitForInput(page, inputLocator, { click: false });
         await sleep(1500, 2500);
 
         // 2. 上传图片 (使用 filechooser 事件，因为 Firefox 不会创建 DOM input 元素)
@@ -169,9 +169,8 @@ async function generateImage(context, prompt, imgPaths, modelId, meta = {}) {
  * @param {import('playwright-core').Page} page
  */
 async function waitInputValidator(page) {
-    await page.getByRole('textbox').waitFor({ timeout: 60000 });
-    await safeClick(page, page.getByRole('textbox'), { bias: 'input' });
-    await sleep(500, 1000);
+    const inputLocator = page.getByRole('textbox');
+    await waitForInput(page, inputLocator, { click: true });
 }
 
 /**
@@ -206,5 +205,3 @@ export const manifest = {
     // 核心生图方法
     generateImage
 };
-
-export { generateImage };

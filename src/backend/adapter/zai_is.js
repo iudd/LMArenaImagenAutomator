@@ -1,6 +1,5 @@
 /**
  * @fileoverview zAI（zai.is）适配器
- * @description 通过自动化方式驱动 zai.is 网页端生成图片，并将结果转换为统一的后端返回结构。
  */
 
 import {
@@ -15,7 +14,12 @@ import {
     normalizeHttpError,
     waitApiResponse,
     moveMouseAway,
-    downloadImage
+    downloadImage,
+    waitForPageAuth,
+    lockPageAuth,
+    unlockPageAuth,
+    isPageAuthLocked,
+    waitForInput
 } from '../utils.js';
 import { logger } from '../../utils/logger.js';
 
@@ -30,24 +34,15 @@ const TARGET_URL = 'https://zai.is/';
  * @param {import('playwright-core').Page} page
  * @returns {Promise<boolean>} 是否处理了登录
  */
-let isHandlingAuth = false;
-
-/** 等待登录处理完成 */
-async function waitForAuthComplete() {
-    while (isHandlingAuth) {
-        await sleep(500, 1000);
-    }
-}
-
 async function handleDiscordAuth(page) {
     // 防止重复处理
-    if (isHandlingAuth) return false;
+    if (isPageAuthLocked(page)) return false;
 
     const currentUrl = page.url();
 
     // 1. 检查是否在 zai.is/auth 页面
     if (currentUrl.includes('zai.is/auth')) {
-        isHandlingAuth = true;
+        lockPageAuth(page);
         logger.info('适配器', '[登录器] 检测到登录页面，正在处理 Discord 登录...');
 
         try {
@@ -101,66 +96,16 @@ async function handleDiscordAuth(page) {
 
             logger.info('适配器', '[登录器] Discord 登录完成');
             await sleep(2000, 3000);
-            isHandlingAuth = false;
+            unlockPageAuth(page);
             return true;
         } catch (err) {
             logger.warn('适配器', `[登录器] Discord 登录处理失败: ${err.message}`);
-            isHandlingAuth = false;
+            unlockPageAuth(page);
         }
     }
 
 
     return false;
-}
-
-/**
- * 等待输入框出现，同时自动处理 Discord 登录
- * @param {import('playwright-core').Page} page
- * @param {object} [options={}]
- * @param {number} [options.timeout=60000]
- * @param {boolean} [options.click=true]
- */
-async function waitForInputWithAuth(page, options = {}) {
-    const { timeout = 60000, click = true } = options;
-
-    // 先检查一次当前页面 (全局监听器也会处理，但显式调用确保首次检查)
-    await handleDiscordAuth(page);
-
-    // 轮询等待输入框
-    const startTime = Date.now();
-    while (Date.now() - startTime < timeout) {
-        // 如果正在处理登录，暂停检测输入框，避免冲突
-        if (isHandlingAuth) {
-            await sleep(500, 1000);
-            continue;
-        }
-
-        let inputHandle = null;
-        try {
-            inputHandle = await page.$(INPUT_SELECTOR);
-        } catch (e) {
-            // 忽略执行上下文销毁错误 (通常发生在页面刷新/跳转时)
-            if (e.message.includes('Execution context was destroyed')) {
-                inputHandle = null;
-            } else {
-                throw e;
-            }
-        }
-
-        if (inputHandle) break;
-
-        await sleep(1000, 1500);
-    }
-
-    // 最终确认输入框存在
-    await page.waitForSelector(INPUT_SELECTOR, { timeout: 5000 }).catch(() => {
-        throw new Error('未找到输入框 (.tiptap.ProseMirror)');
-    });
-
-    if (click) {
-        await safeClick(page, INPUT_SELECTOR, { bias: 'input' });
-        await sleep(500, 1000);
-    }
 }
 
 
@@ -178,17 +123,17 @@ async function generateImage(context, prompt, imgPaths, modelId, meta = {}) {
 
     try {
         // 开启新对话 - 先等待可能正在进行的登录处理完成
-        await waitForAuthComplete();
+        await waitForPageAuth(page);
 
         logger.info('适配器', '开启新会话', meta);
         await page.goto(TARGET_URL, { waitUntil: 'domcontentloaded' });
 
         // 如果触发了登录跳转，等待全局处理器完成
-        await waitForAuthComplete();
+        await waitForPageAuth(page);
 
-        // 1. 等待输入框加载（使用公共函数处理登录）
+        // 1. 等待输入框加载
         logger.debug('适配器', '正在寻找输入框...', meta);
-        await waitForInputWithAuth(page, { click: false });
+        await waitForInput(page, INPUT_SELECTOR, { click: false });
         await sleep(1500, 2500);
 
         // 2. 上传图片 (如果有多张图片，会一张一张上传，每次都是 v1/files POST 请求)
@@ -374,10 +319,7 @@ async function generateImage(context, prompt, imgPaths, modelId, meta = {}) {
         logger.info('适配器', `已提取图片链接: ${imageUrl}`, meta);
 
         // 下载图片
-        const downloadResult = await downloadImage(imageUrl, {
-            proxyConfig: context.proxyConfig,
-            userDataDir: context.userDataDir
-        });
+        const downloadResult = await downloadImage(imageUrl, context);
         if (downloadResult.error) {
             return downloadResult;
         }
@@ -426,7 +368,7 @@ export const manifest = {
 
     // 输入框就绪校验
     async waitInput(page, ctx) {
-        await waitForInputWithAuth(page);
+        await waitForInput(page, INPUT_SELECTOR, { click: true });
     },
 
     // 导航处理器
@@ -435,5 +377,3 @@ export const manifest = {
     // 核心生图方法
     generateImage
 };
-
-export { generateImage };

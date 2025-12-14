@@ -8,10 +8,103 @@
  * - `waitApiResponse`：等待匹配的 API 响应（包含页面关闭/崩溃监听）
  * - `normalizePageError`：将页面级异常归一化为可返回给服务器层的错误
  * - `normalizeHttpError`：将 HTTP 响应错误（含限流/人机验证）归一化
+ * - `waitForPageAuth`/`lockPageAuth`...：页面认证锁机制，防止多任务并发冲突
+ * - `waitForInput`: 等待输入框就绪
  */
 
 import { sleep, humanType, safeClick, isPageValid, createPageCloseWatcher, getRealViewport, clamp, random } from '../browser/utils.js';
 import { logger } from '../utils/logger.js';
+
+// ==========================================
+// 页面认证锁工具函数
+// ==========================================
+
+/**
+ * 等待页面认证完成
+ * @param {import('playwright-core').Page} page - 页面对象
+ */
+export async function waitForPageAuth(page) {
+    while (page.authState?.isHandlingAuth) {
+        await sleep(500, 1000);
+    }
+}
+
+/**
+ * 设置页面认证锁（加锁）
+ * @param {import('playwright-core').Page} page - 页面对象
+ */
+export function lockPageAuth(page) {
+    if (page.authState) page.authState.isHandlingAuth = true;
+}
+
+/**
+ * 释放页面认证锁（解锁）
+ * @param {import('playwright-core').Page} page - 页面对象
+ */
+export function unlockPageAuth(page) {
+    if (page.authState) page.authState.isHandlingAuth = false;
+}
+
+/**
+ * 检查页面是否正在处理认证
+ * @param {import('playwright-core').Page} page - 页面对象
+ * @returns {boolean}
+ */
+export function isPageAuthLocked(page) {
+    return page.authState?.isHandlingAuth === true;
+}
+
+/**
+ * 等待输入框出现（自动等待认证完成）
+ * 
+ * 使用轮询方式等待输入框出现，同时尊重页面认证锁。
+ * 当页面正在处理登录跳转时会自动暂停检测。
+ * 
+ * @param {import('playwright-core').Page} page - 页面对象
+ * @param {string|import('playwright-core').Locator} selectorOrLocator - 输入框选择器或 Locator 对象
+ * @param {object} [options={}] - 选项
+ * @param {number} [options.timeout=60000] - 超时时间（毫秒）
+ * @param {boolean} [options.click=true] - 找到后是否点击输入框
+ * @returns {Promise<void>}
+ */
+export async function waitForInput(page, selectorOrLocator, options = {}) {
+    const { timeout = 60000, click = true } = options;
+
+    // 判断是选择器字符串还是 Locator 对象
+    const isLocator = typeof selectorOrLocator !== 'string';
+    const displayName = isLocator ? 'Locator' : selectorOrLocator;
+
+    const startTime = Date.now();
+
+    // 等待认证完成（如果正在处理登录跳转）
+    while (isPageAuthLocked(page)) {
+        if (Date.now() - startTime >= timeout) break;
+        await sleep(500, 1000);
+    }
+
+    // 计算剩余超时时间
+    const elapsed = Date.now() - startTime;
+    const remainingTimeout = Math.max(timeout - elapsed, 5000);
+
+    // 等待输入框出现 - 对字符串选择器使用 waitForSelector，对 Locator 使用 waitFor
+    if (isLocator) {
+        await selectorOrLocator.first().waitFor({ state: 'visible', timeout: remainingTimeout }).catch(() => {
+            throw new Error(`未找到输入框 (${displayName})`);
+        });
+    } else {
+        await page.waitForSelector(selectorOrLocator, { timeout: remainingTimeout }).catch(() => {
+            throw new Error(`未找到输入框 (${displayName})`);
+        });
+    }
+
+    if (click) {
+        const target = isLocator ? selectorOrLocator : selectorOrLocator;
+        await safeClick(page, target, { bias: 'input' });
+        await sleep(500, 1000);
+    }
+}
+
+// ==========================================
 
 /**
  * 任务完成后移开鼠标（拟人化行为）
@@ -199,19 +292,17 @@ export function normalizeHttpError(response, content = null) {
  * 根据 camoufoxFingerprints.json 动态生成请求头，保持与浏览器指纹一致
  * 
  * @param {string} url - 图片 URL
- * @param {object} options - 下载选项
- * @param {object} [options.proxyConfig] - Worker 级代理配置
- * @param {string} [options.userDataDir] - 用户数据目录（用于读取对应的指纹文件）
+ * @param {object} context - 上下文对象，包含 proxyConfig 和 userDataDir
  * @returns {Promise<{ image?: string, error?: string }>} 下载结果
  */
-export async function downloadImage(url, options = {}) {
+export async function downloadImage(url, context = {}) {
     // 动态导入依赖
     const { gotScraping } = await import('got-scraping');
     const fs = await import('fs');
     const path = await import('path');
     const { getHttpProxy } = await import('../utils/proxy.js');
 
-    const { proxyConfig = null, userDataDir } = options;
+    const { proxyConfig = null, userDataDir } = context;
 
     try {
         // 读取指纹文件获取浏览器信息（优先使用 userDataDir 内的指纹）
@@ -270,7 +361,11 @@ export async function downloadImage(url, options = {}) {
 
         const response = await gotScraping(options);
         const base64 = response.body.toString('base64');
-        return { image: `data:image/png;base64,${base64}` };
+        // 根据响应 content-type 生成正确的 MIME 类型
+        const contentType = response.headers['content-type'] || 'image/png';
+        // 提取 MIME 类型 (去除可能的 charset 等附加信息)
+        const mimeType = contentType.split(';')[0].trim();
+        return { image: `data:${mimeType};base64,${base64}` };
     } catch (e) {
         return { error: `已获取结果，但图片下载时遇到错误: ${e.message}` };
     }
