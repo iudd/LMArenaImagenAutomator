@@ -4,7 +4,7 @@
  *
  * 对外统一能力：
  * - `initBrowser(cfg)` → 初始化 Pool
- * - `generateImage(ctx, prompt, imagePaths, modelId, meta)`
+ * - `generate(ctx, prompt, imagePaths, modelId, meta)`
  * - `resolveModelId(modelKey)` / `getModels()` / `getImagePolicy(modelKey)`
  * - `getCookies(workerName, domain)` - 获取指定 Worker 的 Cookies
  */
@@ -67,11 +67,11 @@ export function getBackend() {
          * @param {string} modelId - 模型 ID
          * @param {object} meta - 元信息
          */
-        generateImage: async (ctx, prompt, paths, modelId, meta) => {
+        generate: async (ctx, prompt, paths, modelId, meta) => {
             if (!poolManager) {
                 return { error: 'Pool 未初始化' };
             }
-            return await poolManager.generateImage(ctx, prompt, paths, modelId, meta);
+            return await poolManager.generate(ctx, prompt, paths, modelId, meta);
         },
 
         /**

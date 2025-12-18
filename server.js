@@ -54,7 +54,7 @@ const {
     config,
     name: backendName,
     initBrowser,
-    generateImage,
+    generate,
     TEMP_DIR,
     resolveModelId,
     getModels,
@@ -93,7 +93,7 @@ const queueManager = createQueueManager(
     },
     {
         initBrowser,
-        generateImage,
+        generate,
         config,
         navigateToMonitor: backend.navigateToMonitor
             ? () => backend.navigateToMonitor()
@@ -112,7 +112,8 @@ const handleRequest = createRouter({
     getModelType,
     tempDir: TEMP_DIR,
     imageLimit: IMAGE_LIMIT,
-    queueManager
+    queueManager,
+    config
 });
 
 // ==================== 启动服务器 ====================

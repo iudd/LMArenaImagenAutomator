@@ -29,7 +29,7 @@ const TARGET_URL = 'https://gemini.google.com/app?hl=en';
  * @param {object} [meta={}] - 日志元数据
  * @returns {Promise<{image?: string, error?: string}>}
  */
-async function generateImage(context, prompt, imgPaths, modelId, meta = {}) {
+async function generate(context, prompt, imgPaths, modelId, meta = {}) {
     const { page } = context;
     const inputLocator = page.getByRole('textbox');
     const sendBtnLocator = page.getByRole('button', { name: 'Send message' });
@@ -192,5 +192,5 @@ export const manifest = {
     navigationHandlers: [],
 
     // 核心生图方法
-    generateImage
+    generate
 };

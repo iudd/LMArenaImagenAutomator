@@ -156,7 +156,7 @@ export class PoolManager {
     /**
      * 分发生图任务（支持故障转移）
      */
-    async generateImage(ctx, prompt, paths, modelId, meta) {
+    async generate(ctx, prompt, paths, modelId, meta) {
         const failoverConfig = this.config.backend?.pool?.failover || {};
         const failoverEnabled = failoverConfig.enabled !== false;
         const maxRetries = failoverConfig.maxRetries || 2;
@@ -213,7 +213,7 @@ export class PoolManager {
      */
     async _safeExecuteWorker(worker, ctx, prompt, paths, modelId, meta) {
         try {
-            return await worker.generateImage(ctx, prompt, paths, modelId, meta);
+            return await worker.generate(ctx, prompt, paths, modelId, meta);
         } catch (err) {
             logger.error('工作池', `[${worker.name}] 执行异常`, { error: err.message, ...meta });
             return normalizeError(err.message || '执行异常');

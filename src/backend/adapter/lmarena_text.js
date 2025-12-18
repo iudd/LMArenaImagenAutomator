@@ -33,7 +33,7 @@ const TARGET_URL_SEARCH = 'https://lmarena.ai/zh/c/new?mode=direct&chat-modality
  * @param {object} [meta={}] - 日志元数据
  * @returns {Promise<{image?: string, text?: string, error?: string}>} 生成结果
  */
-async function generateImage(context, prompt, imgPaths, modelId, meta = {}) {
+async function generate(context, prompt, imgPaths, modelId, meta = {}) {
     const { page, config } = context;
     const textareaSelector = 'textarea';
 
@@ -305,5 +305,5 @@ export const manifest = {
     navigationHandlers: [],
 
     // 核心生图方法
-    generateImage
+    generate
 };

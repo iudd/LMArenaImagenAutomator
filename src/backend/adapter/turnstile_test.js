@@ -40,7 +40,7 @@ async function findElementWithShadowRoot(hostHandle) {
 /**
  * 执行 Turnstile 验证任务
  */
-async function generateImage(context, prompt, imgPaths, modelId, meta = {}) {
+async function generate(context, prompt, imgPaths, modelId, meta = {}) {
     const { page } = context;
 
     try {
@@ -212,5 +212,5 @@ export const manifest = {
     },
 
     navigationHandlers: [],
-    generateImage
+    generate
 };

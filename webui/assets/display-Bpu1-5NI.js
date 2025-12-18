@@ -1,0 +1,1 @@
+import{_ as o,b as a,d as r,w as s,g as n,e as c}from"./index-CdkAYAR1.js";const d={};function _(l,e){const t=c("a-card");return r(),a(t,{title:"VNC转发",bordered:!1,style:{height:"100%"}},{default:s(()=>[...e[0]||(e[0]=[n(" 开发中... ",-1)])]),_:1})}const i=o(d,[["render",_]]);export{i as default};

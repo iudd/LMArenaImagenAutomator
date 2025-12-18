@@ -97,7 +97,7 @@ async function handleAccountChooser(page) {
  * @param {string} modelId - 模型 ID (目前未使用,固定为 gemini-3-pro-preview)
  * @returns {Promise<{image?: string, error?: string}>} 生成结果
  */
-async function generateImage(context, prompt, imgPaths, modelId, meta = {}) {
+async function generate(context, prompt, imgPaths, modelId, meta = {}) {
     const { page, config } = context;
 
     try {
@@ -266,6 +266,17 @@ export const manifest = {
     id: 'gemini_biz',
     displayName: 'Gemini Business',
 
+    // 配置表单定义
+    configSchema: [
+        {
+            key: 'entryUrl',
+            label: '入口 URL',
+            type: 'string',
+            required: true,
+            placeholder: 'https://business.gemini.google/home/cid/8888a888-b6e0-88be-86e1-888cf3ee8cf4'
+        }
+    ],
+
     // 入口 URL (从配置读取，支持新旧路径)
     getTargetUrl(config, workerConfig) {
         return config?.backend?.adapter?.gemini_biz?.entryUrl || config?.backend?.geminiBiz?.entryUrl || null;
@@ -286,5 +297,5 @@ export const manifest = {
     navigationHandlers: [handleAccountChooser],
 
     // 核心生图方法
-    generateImage
+    generate
 };

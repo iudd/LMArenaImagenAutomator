@@ -240,12 +240,12 @@ export class Worker {
     /**
      * 生成图片
      */
-    async generateImage(ctx, prompt, paths, modelId, meta) {
+    async generate(ctx, prompt, paths, modelId, meta) {
         const failoverConfig = this.globalConfig.backend?.pool?.failover || {};
         const failoverEnabled = failoverConfig.enabled !== false;
 
         if (this.type === 'merge' && failoverEnabled) {
-            return this._generateImageWithFailover(ctx, prompt, paths, modelId, meta, failoverConfig);
+            return this._generateWithFailover(ctx, prompt, paths, modelId, meta, failoverConfig);
         }
 
         const resolved = this.resolveModelId(modelId);
@@ -261,7 +261,7 @@ export class Worker {
      * Merge 模式下的故障转移生成
      * @private
      */
-    async _generateImageWithFailover(ctx, prompt, paths, modelId, meta, failoverConfig = {}) {
+    async _generateWithFailover(ctx, prompt, paths, modelId, meta, failoverConfig = {}) {
         const maxRetries = failoverConfig.maxRetries || 2;
         const candidateTypes = this._getCandidateTypes(modelId);
 
@@ -339,7 +339,7 @@ export class Worker {
 
         this.busyCount++;
         try {
-            return await adapter.generateImage(subContext, prompt, paths, realId, meta);
+            return await adapter.generate(subContext, prompt, paths, realId, meta);
         } finally {
             this.busyCount--;
         }

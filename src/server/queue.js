@@ -45,7 +45,7 @@ import { ERROR_CODES } from './errors.js';
  * @param {QueueConfig} queueConfig - 队列配置
  * @param {object} callbacks - 回调函数
  * @param {Function} callbacks.initBrowser - 初始化 Pool 函数
- * @param {Function} callbacks.generateImage - 生成图片函数
+ * @param {Function} callbacks.generate - 生成图片函数
  * @param {object} callbacks.config - 配置对象
  * @param {Function} [callbacks.navigateToMonitor] - 监控导航函数
  * @param {Function} [callbacks.getCookies] - 获取 Cookies 函数
@@ -53,13 +53,16 @@ import { ERROR_CODES } from './errors.js';
  */
 export function createQueueManager(queueConfig, callbacks) {
     const { maxConcurrent, queueBuffer, keepaliveMode } = queueConfig;
-    const { initBrowser, generateImage, config, navigateToMonitor, getCookies } = callbacks;
+    const { initBrowser, generate, config, navigateToMonitor, getCookies } = callbacks;
 
     // 计算有效队列大小：0 表示不限制，否则为 maxConcurrent + buffer
     const effectiveQueueSize = queueBuffer === 0 ? Infinity : (maxConcurrent + queueBuffer);
 
     /** @type {TaskContext[]} */
     const queue = [];
+
+    /** @type {TaskContext[]} */
+    const processingTasks = [];  // 跟踪正在处理的任务
 
     /** @type {number} */
     let processingCount = 0;
@@ -108,7 +111,7 @@ export function createQueueManager(queueConfig, callbacks) {
             }
 
             // 调用核心生图逻辑 (通过 Pool 分发)
-            const result = await generateImage(poolContext, prompt, imagePaths, modelId, { id });
+            const result = await generate(poolContext, prompt, imagePaths, modelId, { id });
 
             // 清除心跳
             if (heartbeatInterval) clearInterval(heartbeatInterval);
@@ -176,10 +179,14 @@ export function createQueueManager(queueConfig, callbacks) {
         // 取出下一个任务
         const task = queue.shift();
         processingCount++;
+        processingTasks.push(task);  // 添加到处理中列表
 
         try {
             await processTask(task);
         } finally {
+            // 从处理中列表移除
+            const idx = processingTasks.indexOf(task);
+            if (idx !== -1) processingTasks.splice(idx, 1);
             // 清理临时文件
             cleanupTask(task);
             processingCount--;
@@ -206,6 +213,25 @@ export function createQueueManager(queueConfig, callbacks) {
             queueLength: queue.length,
             processing: processingCount,
             total: processingCount + queue.length
+        };
+    }
+
+    /**
+     * 获取详细队列状态（包含任务列表）
+     * @returns {{processing: object[], waiting: object[]}}
+     */
+    function getDetailedStatus() {
+        return {
+            processing: processingTasks.map(t => ({
+                id: t.id,
+                model: t.modelName || t.modelId,
+                isStreaming: t.isStreaming
+            })),
+            waiting: queue.map(t => ({
+                id: t.id,
+                model: t.modelName || t.modelId,
+                isStreaming: t.isStreaming
+            }))
         };
     }
 
@@ -254,6 +280,7 @@ export function createQueueManager(queueConfig, callbacks) {
     return {
         addTask,
         getStatus,
+        getDetailedStatus,
         canAcceptNonStreaming,
         initializePool,
         getPoolContext,

@@ -89,8 +89,8 @@ class AdapterRegistry {
             errors.push('缺少 id 或类型不正确');
         }
 
-        if (!manifest.generateImage || typeof manifest.generateImage !== 'function') {
-            errors.push('缺少 generateImage 函数');
+        if (!manifest.generate || typeof manifest.generate !== 'function') {
+            errors.push('缺少 generate 函数');
         }
 
         if (!manifest.models || !Array.isArray(manifest.models)) {

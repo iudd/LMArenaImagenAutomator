@@ -4,10 +4,33 @@
  */
 
 import crypto from 'crypto';
+import fs from 'fs';
+import path from 'path';
 import { logger } from '../../utils/logger.js';
 import { ERROR_CODES } from '../errors.js';
 import { sendJson, sendApiError } from './respond.js';
 import { parseRequest } from '../parseChat.js';
+import { createAdminRouter } from './adminRoutes.js';
+
+// MIME 类型映射
+const MIME_TYPES = {
+    '.html': 'text/html; charset=utf-8',
+    '.css': 'text/css; charset=utf-8',
+    '.js': 'application/javascript; charset=utf-8',
+    '.json': 'application/json; charset=utf-8',
+    '.png': 'image/png',
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.gif': 'image/gif',
+    '.svg': 'image/svg+xml',
+    '.ico': 'image/x-icon',
+    '.woff': 'font/woff',
+    '.woff2': 'font/woff2',
+    '.ttf': 'font/ttf'
+};
+
+// WebUI 静态文件目录
+const WEBUI_DIR = path.join(process.cwd(), 'webui');
 
 /**
  * 鉴权检查
@@ -32,6 +55,7 @@ function checkAuth(req, authToken) {
  * @param {string} context.tempDir - 临时目录
  * @param {number} context.imageLimit - 图片数量限制
  * @param {object} context.queueManager - 队列管理器
+ * @param {object} context.config - 完整配置对象（用于 Admin API）
  * @returns {Function} 请求处理函数
  */
 export function createRouter(context) {
@@ -44,8 +68,12 @@ export function createRouter(context) {
         getModelType,
         tempDir,
         imageLimit,
-        queueManager
+        queueManager,
+        config
     } = context;
+
+    // 创建 Admin 路由处理器
+    const handleAdminRequest = createAdminRouter({ config, queueManager, tempDir });
 
     /**
      * 处理 GET /v1/models
@@ -188,15 +216,55 @@ export function createRouter(context) {
         // 生成请求 ID
         const requestId = crypto.randomUUID().slice(0, 8);
 
-        // 鉴权检查
+        // 路由分发
+        const parsedUrl = new URL(req.url, `http://${req.headers.host}`);
+        const pathname = parsedUrl.pathname;
+
+        // WebUI 静态文件服务（无需鉴权）
+        if (req.method === 'GET' && !pathname.startsWith('/v1') && !pathname.startsWith('/admin')) {
+            // 处理根路径
+            let filePath = pathname === '/' ? '/index.html' : pathname;
+            filePath = path.join(WEBUI_DIR, filePath);
+
+            // 安全检查：确保不越级访问
+            if (!filePath.startsWith(WEBUI_DIR)) {
+                res.writeHead(403);
+                res.end('Forbidden');
+                return;
+            }
+
+            // 检查文件是否存在
+            if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+                const ext = path.extname(filePath).toLowerCase();
+                const contentType = MIME_TYPES[ext] || 'application/octet-stream';
+                const content = fs.readFileSync(filePath);
+                res.writeHead(200, { 'Content-Type': contentType });
+                res.end(content);
+                return;
+            }
+
+            // 文件不存在，返回 index.html（SPA 模式）
+            const indexPath = path.join(WEBUI_DIR, 'index.html');
+            if (fs.existsSync(indexPath)) {
+                const content = fs.readFileSync(indexPath);
+                res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+                res.end(content);
+                return;
+            }
+        }
+
+        // 鉴权检查（API 请求）
         if (!checkAuth(req, authToken)) {
             sendApiError(res, { code: ERROR_CODES.UNAUTHORIZED });
             return;
         }
 
-        // 路由分发
-        const parsedUrl = new URL(req.url, `http://${req.headers.host}`);
-        const pathname = parsedUrl.pathname;
+        // Admin API 路由
+        if (pathname.startsWith('/admin')) {
+            const adminPath = pathname.slice(6); // 去除 /admin 前缀
+            await handleAdminRequest(req, res, adminPath);
+            return;
+        }
 
         if (req.method === 'GET' && pathname === '/v1/models') {
             handleModels(res);

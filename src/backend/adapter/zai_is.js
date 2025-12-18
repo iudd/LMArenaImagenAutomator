@@ -119,7 +119,7 @@ async function handleDiscordAuth(page) {
  * @param {object} meta - 日志元数据
  * @returns {Promise<{image?: string, error?: string}>} 生成结果
  */
-async function generateImage(context, prompt, imgPaths, modelId, meta = {}) {
+async function generate(context, prompt, imgPaths, modelId, meta = {}) {
     const { page, config } = context;
 
     try {
@@ -371,5 +371,5 @@ export const manifest = {
     navigationHandlers: [handleDiscordAuth],
 
     // 核心生图方法
-    generateImage
+    generate
 };
