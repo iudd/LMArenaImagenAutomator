@@ -3,7 +3,7 @@
  * @description 页面认证锁、输入框等待、表单提交等页面级操作
  */
 
-import { sleep, humanType, safeClick, isPageValid, createPageCloseWatcher, getRealViewport, clamp, random } from '../../browser/utils.js';
+import { sleep, humanType, safeClick, isPageValid, createPageCloseWatcher, getRealViewport, clamp, random } from '../engine/utils.js';
 import { logger } from '../../utils/logger.js';
 
 // ==========================================

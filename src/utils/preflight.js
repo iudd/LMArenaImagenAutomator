@@ -118,7 +118,8 @@ export function runPreflight() {
             logger.error('服务器', `  - ${err}`);
         }
         logger.error('服务器', '提示: 您可以使用 npm run init -- -custom 来自定义初始化步骤');
-        process.exit(1);
+        // 退出码 78 表示配置/依赖错误，看门狗不应自动重启
+        process.exit(78);
     }
 
     logger.info('服务器', '自检通过');

@@ -12,8 +12,10 @@ export {
     sendApiError,
     buildChatCompletion,
     buildChatCompletionChunk
-} from './http/respond.js';
-export { handleDisplayParams } from './display.js';
+} from './respond.js';
 export { createQueueManager } from './queue.js';
-export { parseRequest } from './parseChat.js';
-export { createRouter } from './http/routes.js';
+export { parseRequest } from './api/openai/parse.js';
+export { createGlobalRouter } from './api/index.js';
+export { createAuthMiddleware } from './middlewares/auth.js';
+
+

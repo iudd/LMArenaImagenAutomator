@@ -6,7 +6,7 @@ import {
     sleep,
     safeClick,
     pasteImages
-} from '../../browser/utils.js';
+} from '../engine/utils.js';
 import {
     fillPrompt,
     submit,

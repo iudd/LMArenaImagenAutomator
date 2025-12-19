@@ -11,7 +11,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import { loadConfig } from '../utils/config.js';
+import { loadConfig } from '../config/index.js';
 import { PoolManager } from './pool/index.js';
 import { logger } from '../utils/logger.js';
 

@@ -5,8 +5,8 @@
 
 import { logger } from '../../utils/logger.js';
 import { registry } from '../registry.js';
-import { createStrategySelector } from '../strategy.js';
-import { executeWithFailover } from '../failover.js';
+import { createStrategySelector } from '../strategies/index.js';
+import { executeWithFailover } from '../strategies/failover.js';
 import { normalizeError } from '../utils/error.js';
 import { Worker } from './Worker.js';
 

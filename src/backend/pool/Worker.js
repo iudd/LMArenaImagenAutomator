@@ -5,7 +5,7 @@
 
 import fs from 'fs';
 import { logger } from '../../utils/logger.js';
-import { initBrowserBase, createCursor } from '../../browser/launcher.js';
+import { initBrowserBase, createCursor } from '../engine/launcher.js';
 import { registry } from '../registry.js';
 import { tryGotoWithCheck } from '../utils/page.js';
 
@@ -137,13 +137,14 @@ export class Worker {
         logger.info('工作池', `[${this.name}] 正在连接目标页面...`);
         await this._navigateToTarget(targetUrl);
 
-        // 登录模式处理
+        // 登录模式：注册浏览器关闭事件（不阻塞）
         const isLoginMode = process.argv.some(arg => arg.startsWith('-login'));
         if (isLoginMode) {
             logger.info('工作池', `[${this.name}] 登录模式已就绪，请在浏览器中完成登录`);
-            logger.info('工作池', `[${this.name}] 完成后可直接关闭浏览器窗口或按 Ctrl+C 退出`);
-            await new Promise(resolve => this.browser.on('close', resolve));
-            process.exit(0);
+            this.browser.on('close', () => {
+                logger.info('工作池', `[${this.name}] 浏览器已关闭，登录模式结束`);
+                process.exit(0);
+            });
         }
 
         logger.info('工作池', `[${this.name}] 初始化完成`);

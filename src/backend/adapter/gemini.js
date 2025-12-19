@@ -6,7 +6,7 @@ import {
     sleep,
     safeClick,
     uploadFilesViaChooser
-} from '../../browser/utils.js';
+} from '../engine/utils.js';
 import {
     fillPrompt,
     normalizePageError,

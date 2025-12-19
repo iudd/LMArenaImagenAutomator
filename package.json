@@ -6,11 +6,17 @@
 	"author": "foxhui",
 	"type": "module",
 	"scripts": {
-		"start": "node server.js",
+		"start": "node supervisor.js",
 		"test": "node scripts/test.js",
 		"genkey": "node scripts/genkey.js",
 		"init": "node scripts/init.js",
 		"postinstall": "node scripts/postinstall.js"
+	},
+	"imports": {
+		"#config": "./src/config/index.js",
+		"#utils/*": "./src/utils/*.js",
+		"#backend/*": "./src/backend/*.js",
+		"#server/*": "./src/server/*.js"
 	},
 	"dependencies": {
 		"@inquirer/prompts": "^8.0.1",

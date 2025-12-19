@@ -12,7 +12,7 @@ import {
     sendApiError,
     buildChatCompletion,
     buildChatCompletionChunk
-} from './http/respond.js';
+} from './respond.js';
 import { ERROR_CODES } from './errors.js';
 
 /**

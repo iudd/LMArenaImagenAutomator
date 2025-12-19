@@ -10,7 +10,7 @@
 import {
     sleep,
     safeClick
-} from '../../browser/utils.js';
+} from '../engine/utils.js';
 import {
     gotoWithCheck,
     normalizePageError,
