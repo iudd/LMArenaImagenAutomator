@@ -108,6 +108,44 @@ const handleImageChange = async (info) => {
   }
 };
 
+// 解析 Markdown 图片
+const parseMarkdownImages = (content) => {
+  if (!content) return { text: '', images: [] };
+
+  const imageRegex = /!\[([^\]]*)\]\(([^)]+)\)/g;
+  const images = [];
+  let match;
+  let lastIndex = 0;
+  let textParts = [];
+
+  while ((match = imageRegex.exec(content)) !== null) {
+    // 添加图片之前的文本
+    if (match.index > lastIndex) {
+      textParts.push(content.substring(lastIndex, match.index));
+    }
+
+    // 添加图片
+    images.push({
+      alt: match[1] || '图片',
+      src: match[2]
+    });
+
+    // 不添加占位符，直接跳过图片的 markdown 语法
+
+    lastIndex = imageRegex.lastIndex;
+  }
+
+  // 添加剩余文本
+  if (lastIndex < content.length) {
+    textParts.push(content.substring(lastIndex));
+  }
+
+  return {
+    text: textParts.join('').trim(),
+    images
+  };
+};
+
 const testApi = async (type) => {
   apiTestResults.value[type].status = 'loading';
   apiTestResults.value[type].error = null;
@@ -196,7 +234,12 @@ const testApi = async (type) => {
 
     if (res.ok) {
       apiTestResults.value[type].status = 'success';
-      apiTestResults.value[type].data = data;
+      // Chat 接口：提取 content
+      if (type === 'chat' && data.choices?.[0]?.message?.content) {
+        apiTestResults.value[type].data = { content: data.choices[0].message.content };
+      } else {
+        apiTestResults.value[type].data = data;
+      }
     } else {
       apiTestResults.value[type].status = 'error';
       apiTestResults.value[type].error = data.error?.message || `HTTP ${res.status}`;
@@ -503,23 +546,45 @@ onMounted(async () => {
           <!-- 测试结果 -->
           <!-- 流式模式：实时显示内容 -->
           <div v-if="chatStreamMode && apiTestResults.chat.status === 'loading'"
-            style="background: #fafafa; padding: 12px; border-radius: 4px; font-size: 12px;">
+            style="background: #fafafa; padding: 12px; border-radius: 4px; font-size: 12px; max-height: 400px; overflow-y: auto;">
             <div style="color: #1890ff; margin-bottom: 8px;">
               <LoadingOutlined /> 正在接收流式响应...
             </div>
-            <pre style="white-space: pre-wrap; word-break: break-all; margin: 0; min-height: 50px;">{{ chatStreamContent ||
-          '等待内容...' }}</pre>
+            <!-- 文本内容 -->
+            <pre v-if="parseMarkdownImages(chatStreamContent).text"
+              style="white-space: pre-wrap; word-break: break-all; margin: 0 0 8px 0; min-height: 50px;">{{
+                parseMarkdownImages(chatStreamContent).text || '等待内容...' }}</pre>
+            <!-- 图片展示 -->
+            <div v-if="parseMarkdownImages(chatStreamContent).images.length > 0"
+              style="display: flex; flex-direction: column; gap: 8px;">
+              <div v-for="(img, index) in parseMarkdownImages(chatStreamContent).images" :key="index"
+                style="border: 1px solid #d9d9d9; border-radius: 4px; padding: 4px; background: white;">
+                <div style="font-size: 11px; color: #8c8c8c; margin-bottom: 4px;">{{ img.alt }}</div>
+                <img :src="img.src" :alt="img.alt"
+                  style="max-width: 100%; height: auto; display: block; border-radius: 2px;" />
+              </div>
+            </div>
           </div>
           <div v-else-if="apiTestResults.chat.status === 'success'">
             <a-tag color="success">
               <CheckCircleOutlined /> 成功
             </a-tag>
             <div
-              style="margin-top: 8px; font-size: 12px; max-height: 200px; overflow-y: auto; background: #fafafa; padding: 8px; border-radius: 4px;">
-              <pre v-if="chatStreamMode" style="white-space: pre-wrap; word-break: break-all; margin: 0;">{{
-                apiTestResults.chat.data?.content || '' }}</pre>
-              <pre v-else style="white-space: pre-wrap; word-break: break-all; margin: 0;">{{
-                JSON.stringify(apiTestResults.chat.data, null, 2) }}</pre>
+              style="margin-top: 8px; font-size: 12px; max-height: 400px; overflow-y: auto; background: #fafafa; padding: 8px; border-radius: 4px;">
+              <!-- 文本内容 -->
+              <pre v-if="parseMarkdownImages(apiTestResults.chat.data?.content).text"
+                style="white-space: pre-wrap; word-break: break-all; margin: 0 0 8px 0;">{{
+                  parseMarkdownImages(apiTestResults.chat.data?.content).text }}</pre>
+              <!-- 图片展示 -->
+              <div v-if="parseMarkdownImages(apiTestResults.chat.data?.content).images.length > 0"
+                style="display: flex; flex-direction: column; gap: 8px;">
+                <div v-for="(img, index) in parseMarkdownImages(apiTestResults.chat.data?.content).images" :key="index"
+                  style="border: 1px solid #d9d9d9; border-radius: 4px; padding: 4px; background: white;">
+                  <div style="font-size: 11px; color: #8c8c8c; margin-bottom: 4px;">{{ img.alt }}</div>
+                  <img :src="img.src" :alt="img.alt"
+                    style="max-width: 100%; height: auto; display: block; border-radius: 2px;" />
+                </div>
+              </div>
             </div>
           </div>
           <div v-else-if="apiTestResults.chat.status === 'error'">
