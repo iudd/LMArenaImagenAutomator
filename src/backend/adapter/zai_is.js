@@ -348,7 +348,7 @@ async function generate(context, prompt, imgPaths, modelId, meta = {}) {
  */
 export const manifest = {
     id: 'zai_is',
-    displayName: 'zAI (zai.is)',
+    displayName: 'zAI (图片生成)',
 
     // 入口 URL
     getTargetUrl(config, workerConfig) {

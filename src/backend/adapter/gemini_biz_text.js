@@ -307,7 +307,7 @@ async function generate(context, prompt, imgPaths, modelId, meta = {}) {
  */
 export const manifest = {
     id: 'gemini_biz_text',
-    displayName: 'Gemini Business (Text)',
+    displayName: 'Gemini Business (文本生成)',
 
     // 配置表单定义（与 gemini_biz 共享配置）
     configSchema: [

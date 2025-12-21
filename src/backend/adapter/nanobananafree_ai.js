@@ -135,7 +135,7 @@ async function generate(context, prompt, imgPaths, modelId, meta = {}) {
  */
 export const manifest = {
     id: 'nanobananafree_ai',
-    displayName: 'NanoBananaFree AI',
+    displayName: 'NanoBananaFree (图片生成)',
 
     // 入口 URL
     getTargetUrl(config, workerConfig) {

@@ -26,19 +26,20 @@
 
 ### 📋 支持列表
 
-| 网站名称 | 文本支持 | 图片支持 |
-| :--- | :---: | :---: | 
-| [**LMArena**](https://lmarena.ai/) | ✅ | ✅ |
-| [**Gemini Enterprise Business**](https://business.gemini.google/) | ✅ | ✅ | 
-| [**Nano Banana Free**](https://nanobananafree.ai/) | ❌ | ✅ | 
-| [**zAI**](https://zai.is/) | ❌ | ✅ |
-| [**Google Gemini**](https://gemini.google.com/) | ✅ | ✅ | 
-| [**ZenMux**](https://zenmux.ai/) | ✅ | ❌ | 
+| 网站名称 | 文本生成 | 图片生成 | 视频生成 |
+| :--- | :---: | :---: | :---: | 
+| [**LMArena**](https://lmarena.ai/) | ✅ | ✅ | 🚫 |
+| [**Gemini Enterprise Business**](https://business.gemini.google/) | ✅ | ✅ | ✅ |
+| [**Nano Banana Free**](https://nanobananafree.ai/) | 🚫 | ✅ | 🚫 |
+| [**zAI**](https://zai.is/) | ❌ | ✅ | 🚫 |
+| [**Google Gemini**](https://gemini.google.com/) | ✅ | ✅ | ✅ | 
+| [**ZenMux**](https://zenmux.ai/) | ✅ | ❌ | 🚫 | 
+| 待续... | - | - | - | 
 
 > [!NOTE]
 > **获取完整模型列表**: 通过 `GET /v1/models` 接口查看当前配置下所有可用模型及其详细信息。
 > 
-> 未来可能会支持更多网站...
+> ✅目前支持；❌目前不支持，但未来可能会支持；🚫网站不支持，是否在支持看网站具体情况；
 
 ---
 

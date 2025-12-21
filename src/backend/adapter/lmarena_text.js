@@ -170,7 +170,7 @@ async function generate(context, prompt, imgPaths, modelId, meta = {}) {
  */
 export const manifest = {
     id: 'lmarena_text',
-    displayName: 'LMArena Text',
+    displayName: 'LMArena (文本生成)',
 
     // 入口 URL
     getTargetUrl(config, workerConfig) {

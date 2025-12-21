@@ -238,7 +238,7 @@ async function generate(context, prompt, imgPaths, modelId, meta = {}) {
  */
 export const manifest = {
     id: 'zenmux_ai',
-    displayName: 'Zenmux AI',
+    displayName: 'Zenmux AI (文本生成)',
 
     // 无需额外配置
     configSchema: [],

@@ -196,7 +196,7 @@ async function generate(context, prompt, imgPaths, modelId, meta = {}) {
  */
 export const manifest = {
     id: 'turnstile_test',
-    displayName: 'Cloudflare Turnstile Test',
+    displayName: 'Cloudflare Turnstile Test (CF人机验证码测试)',
 
     getTargetUrl(config, workerConfig) {
         return TARGET_URL;

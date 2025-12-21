@@ -215,7 +215,7 @@ async function generate(context, prompt, imgPaths, modelId, meta = {}) {
  */
 export const manifest = {
     id: 'gemini_text',
-    displayName: 'Gemini Text (Consumer)',
+    displayName: 'Google Gemini (文本生成)',
 
     getTargetUrl(config, workerConfig) {
         return TARGET_URL;

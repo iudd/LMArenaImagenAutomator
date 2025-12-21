@@ -171,9 +171,16 @@ async function generate(context, prompt, imgPaths, modelId, meta = {}) {
                     logger.debug('适配器', '已拦截请求，正在修改...', meta);
                     if (!postData.streamAssistRequest) postData.streamAssistRequest = {};
                     if (!postData.streamAssistRequest.assistGenerationConfig) postData.streamAssistRequest.assistGenerationConfig = {};
-                    postData.streamAssistRequest.toolsSpec = { imageGenerationSpec: {} };
 
-                    logger.info('适配器', '已拦截请求，强制使用 Nano Banana Pro', meta);
+                    // 根据模型 ID 选择 toolsSpec
+                    if (modelId && modelId.startsWith('veo-')) {
+                        postData.streamAssistRequest.toolsSpec = { videoGenerationSpec: {} };
+                        logger.info('适配器', '已拦截请求，使用视频生成规格', meta);
+                    } else {
+                        postData.streamAssistRequest.toolsSpec = { imageGenerationSpec: {} };
+                        logger.info('适配器', '已拦截请求，使用图片生成规格', meta);
+                    }
+
                     await route.continue({ postData: JSON.stringify(postData) });
                     return;
                 }
@@ -239,8 +246,12 @@ async function generate(context, prompt, imgPaths, modelId, meta = {}) {
 
 
         const base64 = await imageResponse.text();
-        logger.info('适配器', '已下载图片，任务完成', meta);
-        const dataUri = `data:image/png;base64,${base64}`;
+
+        // 从响应头获取内容类型
+        const contentType = imageResponse.headers()['x-goog-safety-content-type'] || 'image/png';
+        logger.info('适配器', `已下载内容，类型: ${contentType}`, meta);
+
+        const dataUri = `data:${contentType};base64,${base64}`;
         return { image: dataUri };
 
 
@@ -264,7 +275,7 @@ async function generate(context, prompt, imgPaths, modelId, meta = {}) {
  */
 export const manifest = {
     id: 'gemini_biz',
-    displayName: 'Gemini Business',
+    displayName: 'Gemini Business (图片、视频生成)',
 
     // 配置表单定义
     configSchema: [
@@ -284,7 +295,8 @@ export const manifest = {
 
     // 模型列表
     models: [
-        { id: 'gemini-3-pro-image-preview', imagePolicy: 'optional' }
+        { id: 'gemini-3-pro-image-preview', imagePolicy: 'optional' },
+        { id: 'veo-3.1-generate-preview', imagePolicy: 'optional' },
     ],
 
     // 导航处理器

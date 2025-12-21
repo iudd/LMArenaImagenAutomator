@@ -179,7 +179,7 @@ async function generate(context, prompt, imgPaths, modelId, meta = {}) {
  */
 export const manifest = {
     id: 'lmarena',
-    displayName: 'LMArena',
+    displayName: 'LMArena (图片生成)',
 
     // 配置项模式
     configSchema: [
