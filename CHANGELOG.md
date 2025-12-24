@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [3.4.1] - 2025-12-24
 
+### ✨ Added
+- **新增适配器**
+  - 支持 Google Flow 图片生成适配器
+
 ### 🐛 Fixed
 - **Gemini Business**：修复因懒加载导致的等待图片超时问题
 
