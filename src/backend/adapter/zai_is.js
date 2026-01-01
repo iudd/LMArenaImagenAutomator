@@ -277,7 +277,7 @@ async function generate(context, prompt, imgPaths, modelId, meta = {}) {
                 urlMatch: 'chat/completions',
                 method: 'POST',
                 timeout: 120000,
-                errorText: ['Model is unable to process your request'],
+                errorText: ['Model is unable to process your request', 'Rate limit reached'],
                 meta
             });
         } catch (e) {
@@ -313,7 +313,7 @@ async function generate(context, prompt, imgPaths, modelId, meta = {}) {
                 urlMatch: 'chat/completed',
                 method: 'POST',
                 timeout: 120000,
-                errorText: ['Model is unable to process your request'],
+                errorText: ['Model is unable to process your request', 'Rate limit reached'],
                 meta
             });
         } catch (e) {
