@@ -1,5 +1,5 @@
-# Hugging Face Space 优化配置
-# 此配置针对资源受限的 Space 环境进行了优化
+# Hugging Face Space 配置文件
+# 注意：第一次启动需要登录模式，请保持 headless: false
 
 # 日志等级: debug | info | warn | error
 logLevel: info
@@ -26,7 +26,7 @@ backend:
     
     # 浏览器实例列表
     instances:
-      # 默认浏览器实例（优化版）
+      # 默认浏览器实例
       - name: "browser_default"
         workers:
           - name: "default"
@@ -40,23 +40,22 @@ backend:
       returnUrl: false
 
 queue:
-  # 队列缓冲区大小（减少以降低内存占用）
-  queueBuffer: 1
-  # 图片数量上限（减少以降低内存占用）
-  imageLimit: 3
+  # 队列缓冲区大小
+  queueBuffer: 2
+  # 图片数量上限
+  imageLimit: 5
 
 browser:
   # 浏览器可执行文件路径
   path: ""
   
   # 是否启用无头模式
-  # ⚠️ Hugging Face Space 必须使用无头模式以节省资源
-  headless: true
+  # ⚠️ 第一次启动需要登录，请保持 false
+  headless: false
 
   # 站点隔离 (fission.autostart)
-  # ⚠️ 关闭此项可显著降低内存占用（从 ~2GB 降至 ~1GB）
-  # 风险：可能被极高阶的反爬系统检测到
-  fission: false
+  # 开启保持 Firefox 默认状态，关闭可降低内存占用
+  fission: true
   
   # 全局代理
   proxy:
