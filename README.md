@@ -79,11 +79,35 @@ short_description: 将网页版 AI 服务转换为 OpenAI 兼容 API 的自动�
 
 ## 🚀 Space 部署说明
 
+### ⚠️ 重要提示
+
+**Hugging Face Space 免费版（CPU tiny）资源严重不足，不推荐使用！**
+
+**推荐硬件配置：**
+
+| 硬件类型 | CPU | 内存 | 价格 | 推荐度 |
+|---------|-----|------|------|--------|
+| CPU Basic | 2 vCPU | 16 GB | $0.10/小时 | ✅ 推荐 |
+| CPU Upgrade | 4 vCPU | 32 GB | $0.30/小时 | ✅✅ 最佳 |
+| CPU XL | 8 vCPU | 64 GB | $0.80/小时 | ✅✅✅ 极佳 |
+
+**为什么需要这么多资源？**
+
+- 浏览器启动需要约 1-2 GB 内存
+- 每个浏览器实例需要额外 500 MB - 1 GB
+- 虚拟显示器（Xvfb）需要约 100 MB
+- VNC 服务需要约 50 MB
+
+**免费版限制：**
+- CPU: 2 vCPU（共享）
+- 内存: 16 GB（共享，实际可用更少）
+- 经常因资源不足导致服务被暂停
+
 ### 📋 前置要求
 
 - Hugging Face 账号
 - 已创建 Space (Docker SDK)
-- Space 类型选择 **Docker**
+- **推荐使用 CPU Basic 或更高级别的 Space**
 
 ### 🛠️ 部署步骤
 
@@ -92,41 +116,62 @@ short_description: 将网页版 AI 服务转换为 OpenAI 兼容 API 的自动�
    git clone https://huggingface.co/spaces/YOUR_USERNAME/YOUR_SPACE_NAME
    cd YOUR_SPACE_NAME
    git remote add origin https://huggingface.co/spaces/YOUR_USERNAME/YOUR_SPACE_NAME
-   git push origin main
+   git push origin webai2hf:main
    ```
 
 2. **配置 Space 设置**
    - 在 Space 设置中确保 **SDK** 选择为 **Docker**
+   - **硬件选择**: 推荐 **CPU Basic**（$0.10/小时）
    - 确保公开或私有设置符合您的需求
 
 3. **配置环境变量** (可选)
    在 Space 设置中添加以下环境变量（如需自定义）：
-   - `PORT`: 服务端口（默认 3000）
+   - `PORT`: 服务端口（默认 7860）
    - `AUTH_TOKEN`: API 鉴权密钥（建议使用强密码）
 
 4. **等待构建完成**
    - Space 会自动构建 Docker 镜像
    - 构建时间约 5-10 分钟
+   - **浏览器初始化需要 30-60 秒**
    - 构建完成后服务自动启动
 
 5. **访问服务**
    - Space URL: `https://huggingface.co/spaces/YOUR_USERNAME/YOUR_SPACE_NAME`
-   - WebUI: 直接访问 Space URL
+   - WebUI: 直接访问 Space URL，点击 "🎨 访问 WebUI"
    - API: `https://huggingface.co/spaces/YOUR_USERNAME/YOUR_SPACE_NAME/v1/...`
 
 ### ⚠️ Space 限制说明
 
-- **资源限制**: 免费版 Space 有 CPU 和内存限制
-- **构建时间**: 首次构建需要下载浏览器，时间较长
+- **资源限制**: 免费版 Space 有 CPU 和内存限制，**强烈建议使用付费版**
+- **构建时间**: 首次构建需要下载浏览器，时间较长（5-10 分钟）
+- **启动时间**: 浏览器初始化需要 30-60 秒
 - **持久化存储**: Space 重启后数据会丢失（建议使用 Secrets 配置）
 - **网络访问**: Space 可以访问外部网站，但可能有速率限制
 
 ### 💡 使用建议
 
-1. **首次使用**: 访问 WebUI 完成账号登录初始化
-2. **鉴权配置**: 在 Space Settings 中设置 `AUTH_TOKEN` 环境变量
-3. **监控日志**: 通过 Space 的 Logs 页面查看运行状态
-4. **性能优化**: 如需更高性能，可升级 Space 到付费版本
+1. **硬件选择**: 使用 **CPU Basic** 或更高级别的 Space
+2. **首次使用**: 访问 WebUI 完成账号登录初始化
+3. **鉴权配置**: 在 Space Settings 中设置 `AUTH_TOKEN` 环境变量
+4. **监控日志**: 通过 Space 的 Logs 页面查看运行状态
+5. **成本控制**: 不使用时暂停或删除 Space
+6. **性能优化**: 如需更高性能，可升级 Space 到更高级别
+
+### 🔧 故障排除
+
+**问题 1：服务器被暂停（SIGTERM）**
+- **原因**: 内存超限或启动超时
+- **解决**: 升级到 CPU Basic 或更高级别的 Space
+
+**问题 2：浏览器启动失败**
+- **原因**: 资源不足
+- **解决**: 检查硬件配置，确保使用 CPU Basic 或更高
+
+**问题 3：服务响应慢**
+- **原因**: 资源受限
+- **解决**: 升级到更高级别的 Space
+
+**详细故障排除指南**: 请查看 [HUGGINGFACE_SPACE.md](HUGGINGFACE_SPACE.md)
 
 ---
 
@@ -393,3 +438,4 @@ curl "http://localhost:3000/v1/cookies?name=browser_default&domain=lmarena.ai" \
 - **GitHub**: [https://github.com/foxhui](https://github.com/foxhui)
 - **文档**: [WebAI2API 文档中心](https://foxhui.github.io/WebAI2API/)
 - **Issues**: [提交问题](https://github.com/foxhui/WebAI2API/issues)
+- **Hugging Face Space 部署指南**: [查看详细文档](HUGGINGFACE_SPACE.md)
