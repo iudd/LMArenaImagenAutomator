@@ -1,3 +1,22 @@
+---
+title: WebAI2API
+emoji: 🤖
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+pinned: false
+license: mit
+tags:
+  - web-automation
+  - openai-api
+  - playwright
+  - camoufox
+  - ai-api
+  - lm-arena
+  - gemini
+short_description: 将网页版 AI 服务转换为 OpenAI 兼容 API 的自动化工具
+---
+
 # WebAI2API
 
 简体中文 | [English](README_EN.md)
@@ -13,6 +32,7 @@
 
 ## 📑 目录
 
+- [Space 部署说明](#-space-部署说明)
 - [快速部署](#-快速部署)
 - [快速开始](#-快速开始)
 - [使用方法](#-使用方法)
@@ -54,6 +74,59 @@
 > **获取完整模型列表**: 通过 `GET /v1/models` 接口查看当前配置下所有可用模型及其详细信息。
 > 
 > ✅目前支持；❌目前不支持，但未来可能会支持；🚫网站不支持, 未来是否在支持看网站具体情况；💧结果带水印且无法去除；
+
+---
+
+## 🚀 Space 部署说明
+
+### 📋 前置要求
+
+- Hugging Face 账号
+- 已创建 Space (Docker SDK)
+- Space 类型选择 **Docker**
+
+### 🛠️ 部署步骤
+
+1. **克隆或上传代码到 Space**
+   ```bash
+   git clone https://huggingface.co/spaces/YOUR_USERNAME/YOUR_SPACE_NAME
+   cd YOUR_SPACE_NAME
+   git remote add origin https://huggingface.co/spaces/YOUR_USERNAME/YOUR_SPACE_NAME
+   git push origin main
+   ```
+
+2. **配置 Space 设置**
+   - 在 Space 设置中确保 **SDK** 选择为 **Docker**
+   - 确保公开或私有设置符合您的需求
+
+3. **配置环境变量** (可选)
+   在 Space 设置中添加以下环境变量（如需自定义）：
+   - `PORT`: 服务端口（默认 3000）
+   - `AUTH_TOKEN`: API 鉴权密钥（建议使用强密码）
+
+4. **等待构建完成**
+   - Space 会自动构建 Docker 镜像
+   - 构建时间约 5-10 分钟
+   - 构建完成后服务自动启动
+
+5. **访问服务**
+   - Space URL: `https://huggingface.co/spaces/YOUR_USERNAME/YOUR_SPACE_NAME`
+   - WebUI: 直接访问 Space URL
+   - API: `https://huggingface.co/spaces/YOUR_USERNAME/YOUR_SPACE_NAME/v1/...`
+
+### ⚠️ Space 限制说明
+
+- **资源限制**: 免费版 Space 有 CPU 和内存限制
+- **构建时间**: 首次构建需要下载浏览器，时间较长
+- **持久化存储**: Space 重启后数据会丢失（建议使用 Secrets 配置）
+- **网络访问**: Space 可以访问外部网站，但可能有速率限制
+
+### 💡 使用建议
+
+1. **首次使用**: 访问 WebUI 完成账号登录初始化
+2. **鉴权配置**: 在 Space Settings 中设置 `AUTH_TOKEN` 环境变量
+3. **监控日志**: 通过 Space 的 Logs 页面查看运行状态
+4. **性能优化**: 如需更高性能，可升级 Space 到付费版本
 
 ---
 
@@ -306,4 +379,17 @@ curl "http://localhost:3000/v1/cookies?name=browser_default&domain=lmarena.ai" \
 
 ---
 
-**感谢 LMArena、Gemini 等网站提供 AI 服务!** 🎉
+## 🙏 致谢
+
+感谢 LMArena、Gemini 等网站提供 AI 服务! 🎉
+
+感谢 Hugging Face 提供免费的 Space 托管服务! 🙌
+
+---
+
+## 📞 联系方式
+
+- **作者**: foxhui
+- **GitHub**: [https://github.com/foxhui](https://github.com/foxhui)
+- **文档**: [WebAI2API 文档中心](https://foxhui.github.io/WebAI2API/)
+- **Issues**: [提交问题](https://github.com/foxhui/WebAI2API/issues)
