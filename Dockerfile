@@ -32,7 +32,10 @@ RUN npm install -g pnpm && pnpm install --no-frozen-lockfile
 COPY . .
 RUN npm run init
 
+# 4. 设置启动脚本权限
+RUN chmod +x start_hf.sh
+
 EXPOSE 3000 5900
 
-# 4. 启动服务（配置文件会自动从 config.example.yaml 复制到 data/config.yaml）
-CMD ["npm", "start", "--", "-xvfb", "-vnc"]
+# 5. 使用 Hugging Face Space 启动脚本
+CMD ["./start_hf.sh"]
