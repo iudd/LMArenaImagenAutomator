@@ -1,11 +1,11 @@
-# Hugging Face Space 配置文件
-# 注意：第一次启动需要登录模式，请保持 headless: false
+# Hugging Face Space 优化配置
+# 针对 CPU 基础版 (2 vCPU, 16 GB) 优化
 
 # 日志等级: debug | info | warn | error
 logLevel: info
 
 server:
-  # 监听端口（会被 start_hf.sh 自动修改为 7860）
+  # 监听端口 (会被 start_hf.sh 覆盖为 7860)
   port: 7860
   # 鉴权 API Token (可使用 npm run genkey 生成)
   # 该配置会对 API 接口和 WebUI 生效
@@ -18,12 +18,12 @@ backend:
   pool:
     # 全局调度策略
     strategy: least_busy
-    
+
     # 故障转移配置
     failover:
       enabled: true
       maxRetries: 2
-    
+
     # 浏览器实例列表
     instances:
       # 默认浏览器实例
@@ -32,10 +32,7 @@ backend:
           - name: "default"
             type: lmarena
 
-  # 适配器专属配置
   adapter:
-    gemini_biz:
-      entryUrl: ""
     lmarena:
       returnUrl: false
 
@@ -49,17 +46,9 @@ browser:
   # 浏览器可执行文件路径
   path: ""
   
-  # 是否启用无头模式
-  # ⚠️ 第一次启动需要登录，请保持 false
+  # 无头模式 (Hugging Face Space 推荐)
   headless: false
 
-  # 站点隔离 (fission.autostart)
-  # 开启保持 Firefox 默认状态，关闭可降低内存占用
-  fission: true
-  
-  # 全局代理
-  proxy:
-    enable: false
-    type: http
-    host: 127.0.0.1
-    port: 7890
+  # 关闭 Fission 降低内存占用
+  # ⚠️ 可能会增加被检测风险，但 HF Space 资源有限
+  fission: false
