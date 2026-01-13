@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebAI2API - Hugging Face Space</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            font-size: 60px;
+            margin-bottom: 10px;
+        }
+        h1 {
+            color: #333;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        .status {
+            display: inline-block;
+            background: #10b981;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .info {
+            background: #f3f4f6;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .info h2 {
+            color: #667eea;
+            font-size: 20px;
+            margin-bottom: 15px;
+        }
+        .info p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+        .info ul {
+            color: #666;
+            line-height: 1.8;
+            padding-left: 20px;
+        }
+        .buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            flex: 1;
+            min-width: 200px;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            text-align: center;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #374151;
+        }
+        .btn-secondary:hover {
+            background: #d1d5db;
+            transform: translateY(-2px);
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #9ca3af;
+            font-size: 14px;
+        }
+        .api-endpoints {
+            background: #1f2937;
+            color: #e5e7eb;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        .api-endpoints code {
+            background: #374151;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 24px;
+            }
+            .buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🤖</div>
+            <h1>WebAI2API</h1>
+            <span class="status">✓ 服务运行中</span>
+        </div>
+
+        <div class="info">
+            <h2>📝 项目简介</h2>
+            <p>WebAI2API 是一个基于 Camoufox (Playwright) 的网页版 AI 服务转通用 API 的工具。通过模拟人类操作与 LMArena、Gemini 等网站交互，提供兼容 OpenAI 格式的接口服务。</p>
+        </div>
+
+        <div class="info">
+            <h2>🌐 API 端点</h2>
+            <div class="api-endpoints">
+                <p>• <code>GET /v1/models</code> - 获取模型列表</p>
+                <p>• <code>POST /v1/chat/completions</code> - 文本对话</p>
+                <p>• <code>GET /v1/cookies</code> - 获取 Cookies</p>
+            </div>
+        </div>
+
+        <div class="info">
+            <h2>✨ 主要特性</h2>
+            <ul>
+                <li>🤖 拟人交互：模拟人类打字与鼠标轨迹</li>
+                <li>🔄 接口兼容：提供标准 OpenAI 格式接口</li>
+                <li>🚀 并发隔离：支持多窗口并发执行</li>
+                <li>🛡️ 稳定防护：内置任务队列、负载均衡</li>
+                <li>🎨 网页管理：提供可视化管理界面</li>
+            </ul>
+        </div>
+
+        <div class="buttons">
+            <a href="/webui/" class="btn btn-primary">🎨 访问 WebUI</a>
+            <a href="/v1/models" class="btn btn-secondary">📋 查看模型列表</a>
+        </div>
+
+        <div class="info" style="margin-top: 30px;">
+            <h2>⚠️ 注意事项</h2>
+            <p>首次使用需要：</p>
+            <ul>
+                <li>访问 WebUI 完成账号登录初始化</li>
+                <li>配置 API Token（在 Space Settings 中设置 AUTH_TOKEN）</li>
+                <li>监控日志查看运行状态（Space Logs 页面）</li>
+            </ul>
+        </div>
+
+        <div class="footer">
+            <p>Powered by Hugging Face Spaces | 🙏 感谢 Hugging Face 提供托管服务</p>
+        </div>
+    </div>
+
+    <script>
+        // 简单的健康检查
+        fetch('/v1/models')
+            .then(response => response.json())
+            .then(data => {
+                console.log('API 运行正常，可用模型数量:', data.data?.length || 0);
+            })
+            .catch(error => {
+                console.log('API 检查失败:', error);
+            });
+    </script>
+</body>
+</html>
