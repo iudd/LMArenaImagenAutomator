@@ -34,8 +34,12 @@ RUN npm install -g pnpm && pnpm install --frozen-lockfile
 COPY . .
 RUN npm run init
 
+# 4. 复制并设置 Hugging Face Space 启动脚本
+COPY start_hf.sh /app/start_hf.sh
+RUN chmod +x /app/start_hf.sh
+
 # 暴露 Hugging Face Space 期望的端口
 EXPOSE 7860 5900
 
-# 4. 启动服务（使用 Hugging Face Space 期望的端口）
-CMD ["npm", "start", "--", "-xvfb", "-vnc", "-port", "7860"]
+# 5. 使用 Hugging Face Space 启动脚本
+CMD ["/app/start_hf.sh"]
