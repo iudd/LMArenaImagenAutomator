@@ -38,18 +38,18 @@ grep -E "^(port|headless|fission|queueBuffer|imageLimit):" data/config.yaml
 echo "----------------------------------------"
 echo ""
 
-# 自动恢复数据
-if [ -n "$HF_DATASET_REPO" ] && [ -n "$HF_TOKEN" ]; then
+# 自动恢复数据（使用 WebDAV）
+if [ -n "$WEBDAV_URL" ] && [ -n "$WEBDAV_USER" ] && [ -n "$WEBDAV_PASS" ]; then
     echo "=========================================="
-    echo "📦 自动恢复浏览器数据..."
+    echo "📦 使用 WebDAV 自动恢复浏览器数据..."
     echo "=========================================="
     
     if [ -d "data/camoufoxUserData" ]; then
         echo "⚠️  本地已有数据，跳过恢复"
         echo "如需强制恢复，请先运行：npm run clear-data"
     else
-        echo "正在从 Dataset 恢复数据..."
-        if npm run restore-data; then
+        echo "正在从 WebDAV 恢复数据..."
+        if npm run restore-data-webdav; then
             echo "✅ 数据恢复成功"
         else
             echo "⚠️  数据恢复失败，将使用新的浏览器实例"
@@ -61,10 +61,11 @@ else
     echo "⚠️  未配置数据持久化"
     echo "=========================================="
     echo "如需保存浏览器登录状态，请配置以下环境变量："
-    echo "  - HF_DATASET_REPO: Dataset 仓库（如：iudd/webai2api-data）"
-    echo "  - HF_TOKEN: Hugging Face Token（需要 write 权限）"
+    echo "  - WEBDAV_URL: https://rebun.infini-cloud.net/dav"
+    echo "  - WEBDAV_USER: iyougame"
+    echo "  - WEBDAV_PASS: exzgmqInkoFADbjOx1ak_reGVIf_ptIZxYUtBFp3mLw"
     echo ""
-    echo "配置后，登录完成后运行：npm run save-data"
+    echo "配置后，登录完成后运行：npm run save-data-webdav"
     echo ""
 fi
 
