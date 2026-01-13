@@ -1,3 +1,22 @@
+---
+title: WebAI2API
+emoji: 🤖
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+pinned: false
+license: mit
+tags:
+  - web-automation
+  - openai-api
+  - playwright
+  - camoufox
+  - ai-api
+  - lm-arena
+  - gemini
+short_description: Automated tool to convert web-based AI services to OpenAI-compatible APIs
+---
+
 # WebAI2API
 
 [简体中文](README.md) | English
@@ -16,6 +35,7 @@
 
 ## 📑 Table of Contents
 
+- [Space Deployment Guide](#-space-deployment-guide)
 - [Quick Deployment](#-quick-deployment)
 - [Quick Start](#-quick-start)
 - [Usage](#-usage)
@@ -57,6 +77,59 @@
 > **Get full model list**: Use the `GET /v1/models` endpoint to view all available models and their details under the current configuration.
 > 
 > ✅ Supported; ❌ Not currently supported, but may be in the future; 🚫 Website does not support, future support depends on the website's status; 💧 Results contain watermarks that cannot be removed.
+
+---
+
+## 🚀 Space Deployment Guide
+
+### 📋 Prerequisites
+
+- Hugging Face account
+- Created Space (Docker SDK)
+- Space type set to **Docker**
+
+### 🛠️ Deployment Steps
+
+1. **Clone or Upload Code to Space**
+   ```bash
+   git clone https://huggingface.co/spaces/YOUR_USERNAME/YOUR_SPACE_NAME
+   cd YOUR_SPACE_NAME
+   git remote add origin https://huggingface.co/spaces/YOUR_USERNAME/YOUR_SPACE_NAME
+   git push origin main
+   ```
+
+2. **Configure Space Settings**
+   - Ensure **SDK** is set to **Docker** in Space settings
+   - Ensure public/private settings meet your requirements
+
+3. **Configure Environment Variables** (Optional)
+   Add the following environment variables in Space settings (if customization is needed):
+   - `PORT`: Service port (default 3000)
+   - `AUTH_TOKEN`: API authentication key (recommended to use a strong password)
+
+4. **Wait for Build to Complete**
+   - Space will automatically build the Docker image
+   - Build time is approximately 5-10 minutes
+   - Service starts automatically after build completion
+
+5. **Access Service**
+   - Space URL: `https://huggingface.co/spaces/YOUR_USERNAME/YOUR_SPACE_NAME`
+   - WebUI: Access Space URL directly
+   - API: `https://huggingface.co/spaces/YOUR_USERNAME/YOUR_SPACE_NAME/v1/...`
+
+### ⚠️ Space Limitations
+
+- **Resource Limits**: Free tier Spaces have CPU and memory limitations
+- **Build Time**: First build requires downloading browser, takes longer
+- **Persistent Storage**: Data is lost after Space restart (recommend using Secrets for configuration)
+- **Network Access**: Spaces can access external websites but may have rate limits
+
+### 💡 Usage Recommendations
+
+1. **First Use**: Access WebUI to complete account login initialization
+2. **Authentication**: Set `AUTH_TOKEN` environment variable in Space Settings
+3. **Monitor Logs**: Check running status via Space's Logs page
+4. **Performance**: Upgrade Space to paid tier for better performance if needed
 
 ---
 
@@ -309,4 +382,17 @@ This project has migrated from Puppeteer to Camoufox to handle increasingly comp
 
 ---
 
-**Thanks to sites like LMArena and Gemini for providing AI services!** 🎉
+## 🙏 Acknowledgments
+
+Thanks to sites like LMArena and Gemini for providing AI services! 🎉
+
+Thanks to Hugging Face for providing free Space hosting! 🙌
+
+---
+
+## 📞 Contact
+
+- **Author**: foxhui
+- **GitHub**: [https://github.com/foxhui](https://github.com/foxhui)
+- **Documentation**: [WebAI2API Documentation Center](https://foxhui.github.io/WebAI2API/en/)
+- **Issues**: [Submit Issue](https://github.com/foxhui/WebAI2API/issues)
