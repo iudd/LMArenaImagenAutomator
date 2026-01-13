@@ -33,6 +33,7 @@ short_description: 将网页版 AI 服务转换为 OpenAI 兼容 API 的自动�
 ## 📑 目录
 
 - [Space 部署说明](#-space-部署说明)
+- [数据持久化配置](#-数据持久化配置)
 - [快速部署](#-快速部署)
 - [快速开始](#-快速开始)
 - [使用方法](#-使用方法)
@@ -103,75 +104,122 @@ short_description: 将网页版 AI 服务转换为 OpenAI 兼容 API 的自动�
 - 内存: 16 GB（共享，实际可用更少）
 - 经常因资源不足导致服务被暂停
 
-### 📋 前置要求
+---
 
-- Hugging Face 账号
-- 已创建 Space (Docker SDK)
-- **推荐使用 CPU Basic 或更高级别的 Space**
+## 💾 数据持久化配置
 
-### 🛠️ 部署步骤
+**Hugging Face Space 的存储不是持久化的，每次重启后数据会丢失。**
 
-1. **克隆或上传代码到 Space**
-   ```bash
-   git clone https://huggingface.co/spaces/YOUR_USERNAME/YOUR_SPACE_NAME
-   cd YOUR_SPACE_NAME
-   git remote add origin https://huggingface.co/spaces/YOUR_USERNAME/YOUR_SPACE_NAME
-   git push origin webai2hf:main
-   ```
+### 方案：使用 WebDAV（免费，推荐）
 
-2. **配置 Space 设置**
-   - 在 Space 设置中确保 **SDK** 选择为 **Docker**
-   - **硬件选择**: 推荐 **CPU Basic**（$0.10/小时）
-   - 确保公开或私有设置符合您的需求
+**优势：**
+- ✅ 完全免费
+- ✅ 无流量限制
+- ✅ 无存储限制
+- ✅ 自动恢复
 
-3. **配置环境变量** (可选)
-   在 Space 设置中添加以下环境变量（如需自定义）：
-   - `PORT`: 服务端口（默认 7860）
-   - `AUTH_TOKEN`: API 鉴权密钥（建议使用强密码）
+#### 配置步骤（2 步）
 
-4. **等待构建完成**
-   - Space 会自动构建 Docker 镜像
-   - 构建时间约 5-10 分钟
-   - **浏览器初始化需要 30-60 秒**
-   - 构建完成后服务自动启动
+1. **在 Space Settings 中添加环境变量**：
 
-5. **访问服务**
-   - Space URL: `https://huggingface.co/spaces/YOUR_USERNAME/YOUR_SPACE_NAME`
-   - WebUI: 直接访问 Space URL，点击 "🎨 访问 WebUI"
-   - API: `https://huggingface.co/spaces/YOUR_USERNAME/YOUR_SPACE_NAME/v1/...`
+```
+WEBDAV_URL=https://rebun.infini-cloud.net/dav
+WEBDAV_USER=iyougame
+WEBDAV_PASS=exzgmqInkoFADbjOx1ak_reGVIf_ptIZxYUtBFp3mLw
+```
 
-### ⚠️ Space 限制说明
+2. **保存并等待 Space 重启**
+
+✅ 配置完成！
+
+#### 使用流程
+
+**首次使用：**
+1. 启动 Space（无数据）
+2. 访问 WebUI 并登录
+3. 保存数据：`npm run save-data-webdav`
+
+**后续使用：**
+1. 启动 Space
+2. 自动从 WebDAV 恢复数据
+3. 直接使用，无需重新登录
+
+#### 常用命令
+
+```bash
+# 保存数据到 WebDAV
+npm run save-data-webdav
+
+# 从 WebDAV 恢复数据
+npm run restore-data-webdav
+
+# 清除本地数据
+npm run clear-data
+```
+
+**详细文档**: [QUICK_START_WEBDAV.md](QUICK_START_WEBDAV.md)
+
+---
+
+## 🛠️ 部署步骤
+
+### 1. 创建 Space
+
+1. 访问 https://huggingface.co/spaces
+2. 点击 "Create new Space"
+3. 配置：
+   - **Owner**: 选择您的账号
+   - **Space name**: 输入名称（如 `webai2api`）
+   - **SDK**: 选择 **Docker**
+   - **Hardware**: 推荐 **CPU Basic**（$0.10/小时）或更高
+   - **Visibility**: Public 或 Private
+
+### 2. 配置环境变量
+
+**数据持久化（必需）：**
+```
+WEBDAV_URL=https://rebun.infini-cloud.net/dav
+WEBDAV_USER=iyougame
+WEBDAV_PASS=exzgmqInkoFADbjOx1ak_reGVIf_ptIZxYUtBFp3mLw
+```
+
+**可选配置：**
+- `AUTH_TOKEN`: API 鉴权密钥（建议使用强密码）
+
+### 3. 推送代码
+
+```bash
+# 克隆 Space
+git clone https://huggingface.co/spaces/YOUR_USERNAME/YOUR_SPACE_NAME
+cd YOUR_SPACE_NAME
+
+# 添加远程仓库
+git remote add origin https://huggingface.co/spaces/YOUR_USERNAME/YOUR_SPACE_NAME
+
+# 推送 webai2hf 分支
+git push origin webai2hf:main
+```
+
+### 4. 等待构建
+
+- 首次构建需要 5-10 分钟
+- 构建完成后服务自动启动
+- 浏览器初始化需要 30-60 秒
+
+### 5. 访问服务
+
+- 主页：`https://huggingface.co/spaces/YOUR_USERNAME/YOUR_SPACE_NAME`
+- WebUI：点击页面上的 "🎨 访问 WebUI"
+- API：`https://huggingface.co/spaces/YOUR_USERNAME/YOUR_SPACE_NAME/v1/models`
+
+---
+
+## ⚠️ Space 限制说明
 
 - **资源限制**: 免费版 Space 有 CPU 和内存限制，**强烈建议使用付费版**
 - **构建时间**: 首次构建需要下载浏览器，时间较长（5-10 分钟）
 - **启动时间**: 浏览器初始化需要 30-60 秒
-- **持久化存储**: Space 重启后数据会丢失（建议使用 Secrets 配置）
-- **网络访问**: Space 可以访问外部网站，但可能有速率限制
-
-### 💡 使用建议
-
-1. **硬件选择**: 使用 **CPU Basic** 或更高级别的 Space
-2. **首次使用**: 访问 WebUI 完成账号登录初始化
-3. **鉴权配置**: 在 Space Settings 中设置 `AUTH_TOKEN` 环境变量
-4. **监控日志**: 通过 Space 的 Logs 页面查看运行状态
-5. **成本控制**: 不使用时暂停或删除 Space
-6. **性能优化**: 如需更高性能，可升级 Space 到更高级别
-
-### 🔧 故障排除
-
-**问题 1：服务器被暂停（SIGTERM）**
-- **原因**: 内存超限或启动超时
-- **解决**: 升级到 CPU Basic 或更高级别的 Space
-
-**问题 2：浏览器启动失败**
-- **原因**: 资源不足
-- **解决**: 检查硬件配置，确保使用 CPU Basic 或更高
-
-**问题 3：服务响应慢**
-- **原因**: 资源受限
-- **解决**: 升级到更高级别的 Space
-
-**详细故障排除指南**: 请查看 [HUGGINGFACE_SPACE.md](HUGGINGFACE_SPACE.md)
+- **持久化存储**: Space 重启后数据会丢失（使用 WebDAV 解决）
 
 ---
 
@@ -282,7 +330,11 @@ http://localhost:3000
    - 同意服务条款或者新手指引 (如需要)
    - 确保不再有初次使用相关内容的阻拦
 
-3. **SSH 隧道连接示例**(公网服务器推荐):
+3. **保存数据到 WebDAV**:
+   - 在 Space 的终端中执行：`npm run save-data-webdav`
+   - 等待上传完成
+
+4. **SSH 隧道连接示例**(公网服务器推荐):
    ```bash
    # 在本地终端运行,将服务器的 WebUI 映射到本地
    ssh -L 3000:127.0.0.1:3000 root@服务器IP
@@ -430,6 +482,8 @@ curl "http://localhost:3000/v1/cookies?name=browser_default&domain=lmarena.ai" \
 
 感谢 Hugging Face 提供免费的 Space 托管服务! 🙌
 
+感谢 Infini Cloud 提供免费的 WebDAV 存储! ☁️
+
 ---
 
 ## 📞 联系方式
@@ -439,3 +493,4 @@ curl "http://localhost:3000/v1/cookies?name=browser_default&domain=lmarena.ai" \
 - **文档**: [WebAI2API 文档中心](https://foxhui.github.io/WebAI2API/)
 - **Issues**: [提交问题](https://github.com/foxhui/WebAI2API/issues)
 - **Hugging Face Space 部署指南**: [查看详细文档](HUGGINGFACE_SPACE.md)
+- **WebDAV 数据持久化指南**: [查看详细文档](QUICK_START_WEBDAV.md)
