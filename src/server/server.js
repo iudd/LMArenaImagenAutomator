@@ -26,6 +26,7 @@ const { logger } = await import('../utils/logger.js');
 const { createQueueManager, createGlobalRouter } = await import('./index.js');
 const { isUnderSupervisor } = await import('../utils/ipc.js');
 const { loadTodayStats } = await import('../utils/stats.js');
+import { serveStatic } from './middlewares/static.js';
 
 // ==================== 初始化配置 ====================
 
@@ -153,7 +154,15 @@ async function startServer() {
     }
 
     // 创建并启动 HTTP 服务器
-    const server = http.createServer(handleRequest);
+    const server = http.createServer((req, res) => {
+        // 先尝试服务静态文件（用于 Hugging Face Space 健康检查）
+        if (serveStatic(req, res)) {
+            return;
+        }
+        
+        // 然后处理其他请求
+        handleRequest(req, res);
+    });
 
     // 处理 WebSocket 升级请求（VNC 代理）
     server.on('upgrade', async (req, socket, head) => {
