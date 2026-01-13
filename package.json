@@ -9,7 +9,10 @@
 		"start": "node supervisor.js",
 		"genkey": "node scripts/genkey.js",
 		"init": "node scripts/init.js",
-		"postinstall": "node scripts/postinstall.js"
+		"postinstall": "node scripts/postinstall.js",
+		"save-data": "node scripts/save-data.js",
+		"restore-data": "node scripts/restore-data.js",
+		"clear-data": "node scripts/clear-data.js"
 	},
 	"imports": {
 		"#config": "./src/config/index.js",
