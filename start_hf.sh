@@ -16,25 +16,18 @@ echo "=========================================="
 # 创建数据目录
 mkdir -p data
 
-# 使用优化版配置文件
+# 使用配置文件
 if [ -f "config.hf.yaml" ]; then
-    echo "使用 Hugging Face 优化配置文件"
+    echo "使用 Hugging Face 配置文件"
     cp config.hf.yaml data/config.yaml
     sed -i "s/port: 7860/port: $PORT/g" data/config.yaml
+elif [ -f "data/config.yaml" ]; then
+    echo "使用现有配置文件"
+    sed -i "s/port: 3000/port: $PORT/g" data/config.yaml
 else
-    echo "使用默认配置文件"
-    if [ -f "data/config.yaml" ]; then
-        sed -i "s/port: 3000/port: $PORT/g" data/config.yaml
-    else
-        # 如果配置文件不存在，从示例复制
-        cp config.example.yaml data/config.yaml
-        sed -i "s/port: 3000/port: $PORT/g" data/config.yaml
-        # 应用优化设置
-        sed -i "s/headless: false/headless: true/g" data/config.yaml
-        sed -i "s/fission: true/fission: false/g" data/config.yaml
-        sed -i "s/queueBuffer: 2/queueBuffer: 1/g" data/config.yaml
-        sed -i "s/imageLimit: 5/imageLimit: 3/g" data/config.yaml
-    fi
+    echo "从示例配置文件创建"
+    cp config.example.yaml data/config.yaml
+    sed -i "s/port: 3000/port: $PORT/g" data/config.yaml
 fi
 
 # 显示当前配置
